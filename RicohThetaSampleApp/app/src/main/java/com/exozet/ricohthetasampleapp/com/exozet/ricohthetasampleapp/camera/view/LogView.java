@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.view;
+package com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.camera.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

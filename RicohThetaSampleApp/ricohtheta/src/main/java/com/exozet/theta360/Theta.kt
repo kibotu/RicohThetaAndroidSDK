@@ -23,6 +23,6 @@ object Theta {
     fun takePicture() : Uri{ return Uri.EMPTY}//(Observable machen -> Stream + delete image )
     //fun getThumbnail() : Uri{ return Uri.EMPTY}
 
-    fun startLiveView(view : MJpegView){}
+    fun startLiveView(view : com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.camera.view.MJpegView){}
     fun stopLiveView(){}
 }

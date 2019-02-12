@@ -1,4 +1,4 @@
-package com.exozet.theta360;
+package com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.camera.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
