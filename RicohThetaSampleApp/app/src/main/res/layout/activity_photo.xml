@@ -26,7 +26,7 @@
             android:visibility="gone" />
     </FrameLayout>
 
-    <com.theta360.sample.v2.view.LogView
+    <LogView
         android:id="@+id/photo_info"
         android:layout_width="match_parent"
         android:layout_height="0dp"

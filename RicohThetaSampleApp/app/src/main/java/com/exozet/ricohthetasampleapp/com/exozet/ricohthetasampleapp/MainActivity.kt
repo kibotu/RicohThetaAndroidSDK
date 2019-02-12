@@ -11,9 +11,12 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.v20 -> {
 
+
+
                 return@OnNavigationItemSelectedListener true
             }
             R.id.v21 -> {
+
 
                 return@OnNavigationItemSelectedListener true
             }
