@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import com.theta360.general.view.MJpegInputStream;
 
 import java.io.IOException;
 

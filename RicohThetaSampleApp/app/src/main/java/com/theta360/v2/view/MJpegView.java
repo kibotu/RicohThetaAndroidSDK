@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import com.theta360.general.view.MJpegInputStream;
 
 import java.io.IOException;
 
@@ -17,7 +18,7 @@ import java.io.IOException;
  */
 public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
     private MJpegViewThread mMJpegViewThread = null;
-    private MJpegInputStream mMJpegInputStream = null;
+    private com.theta360.general.view.MJpegInputStream mMJpegInputStream = null;
     private boolean existSurface = false;
     private int mDisplayWidth;
     private int mDisplayHeight;

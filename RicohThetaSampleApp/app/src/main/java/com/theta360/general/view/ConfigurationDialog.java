@@ -1,31 +1,26 @@
-package com.theta360.v2.view;
+package com.theta360.general.view;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
+import android.app.*;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioGroup;
-
 import com.exozet.ricohthetasampleapp.R;
-import com.theta360.general.model.ImageSize;
+import com.theta360.general.model.RotateInertia;
 
 /**
  * Setting dialog fragment
  */
-public class ImageSizeDialog extends DialogFragment {
+public class ConfigurationDialog extends DialogFragment {
 
-    private ImageSize mImageSize;
+    private RotateInertia mRotateInertia;
     private DialogBtnListener mListener = null;
 
     /**
      *
      */
-    public ImageSizeDialog() {
+    public ConfigurationDialog() {
         super();
     }
 
@@ -39,31 +34,35 @@ public class ImageSizeDialog extends DialogFragment {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        final View layout = inflater.inflate(R.layout.dialog_image_size, null);
+        final View layout = inflater.inflate(R.layout.dialog_glphotoview_config, null);
         if (null != layout) {
             Button btn = (Button)layout.findViewById(R.id.btn_commit);
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (null != mListener) {
-                        mListener.onDialogCommitClick(mImageSize);
+                        mListener.onDialogCommitClick(mRotateInertia);
                     }
                     dismiss();
                 }
             });
         }
 
-        mImageSize = (ImageSize) getArguments().getSerializable("image_size");
-        if (null != mImageSize) {
-            RadioGroup rg = (RadioGroup) layout.findViewById(R.id.image_size);
+        mRotateInertia = (RotateInertia) getArguments().getSerializable("rotate_inertia");
+        if (null != mRotateInertia) {
+            RadioGroup rg = (RadioGroup) layout.findViewById(R.id.rotation_inertia);
             if (null != rg) {
-                switch (mImageSize) {
-                    case IMAGE_SIZE_2048x1024:
-                        rg.check(R.id.image_size_2048x1024);
+                switch (mRotateInertia) {
+                    case INERTIA_0:
+                        rg.check(R.id.inertia_0);
+                        break;
+                    case INERTIA_50:
+                        rg.check(R.id.inertia_50);
+                        break;
+                    case INERTIA_100:
+                        rg.check(R.id.inertia_100);
                         break;
                     default:
-                    case IMAGE_SIZE_5376x2688:
-                        rg.check(R.id.image_size_5376x2688);
                         break;
                 }
 
@@ -71,12 +70,17 @@ public class ImageSizeDialog extends DialogFragment {
                     @Override
                     public void onCheckedChanged(RadioGroup group, int checkedId) {
                         switch (checkedId) {
-                            case R.id.image_size_2048x1024:
-                                mImageSize = ImageSize.IMAGE_SIZE_2048x1024;
+                            case R.id.inertia_0:
+                                mRotateInertia = RotateInertia.INERTIA_0;
+                                break;
+                            case R.id.inertia_50:
+                                mRotateInertia = RotateInertia.INERTIA_50;
+                                break;
+                            case R.id.inertia_100:
+                                mRotateInertia = RotateInertia.INERTIA_100;
                                 break;
                             default:
-                            case R.id.image_size_5376x2688:
-                                mImageSize = ImageSize.IMAGE_SIZE_5376x2688;
+                                mRotateInertia = null;
                                 break;
                         }
                     }
@@ -92,15 +96,15 @@ public class ImageSizeDialog extends DialogFragment {
     /**
      * Dialog display method
      * @param mgr Fragment manager object
-     * @param imageSize Inertia settings for rotation process
+     * @param inertia Inertia settings for rotation process
      */
-    public static void show(FragmentManager mgr, ImageSize imageSize) {
-        ImageSizeDialog dialog = new ImageSizeDialog();
+    public static void show(FragmentManager mgr, RotateInertia inertia) {
+        ConfigurationDialog dialog = new ConfigurationDialog();
         Bundle bundle = new Bundle();
-        bundle.putSerializable("image_size", imageSize);
+        bundle.putSerializable("rotate_inertia", inertia);
 
         dialog.setArguments(bundle);
-        dialog.show(mgr, ImageSizeDialog.class.getSimpleName());
+        dialog.show(mgr, ConfigurationDialog.class.getSimpleName());
     }
 
     /**
@@ -121,9 +125,9 @@ public class ImageSizeDialog extends DialogFragment {
 
     /**
      * Event listener interface for when a dialog is exited
-	 * If a selection value is required in this dialog, it is necessary to attach the activity that implemented this method
+     * If a selection value is required in this dialog, it is necessary to attach the activity that implemented this method
      */
     public interface DialogBtnListener {
-        void onDialogCommitClick(ImageSize imageSize);
+        void onDialogCommitClick(RotateInertia inertia);
     }
 }

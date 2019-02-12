@@ -34,7 +34,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.exozet.ricohthetasampleapp.R;
-import com.theta360.v2.model.ImageSize;
+import com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.GLPhotoActivity;
+import com.theta360.general.model.ImageSize;
+import com.theta360.general.network.DeviceInfo;
+import com.theta360.general.network.HttpEventListener;
+import com.theta360.general.network.ImageInfo;
+import com.theta360.general.network.StorageInfo;
+import com.theta360.general.view.ImageListArrayAdapter;
+import com.theta360.general.view.ImageRow;
+import com.theta360.general.view.LogView;
+import com.theta360.general.view.MJpegInputStream;
 import com.theta360.v2.network.*;
 import com.theta360.v2.view.*;
 import org.json.JSONException;
@@ -167,7 +176,7 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				objectList = (ListView) findViewById(R.id.object_list);
-				ImageListArrayAdapter empty = new ImageListArrayAdapter(ImageListActivity.this, R.layout.listlayout_object, new ArrayList<ImageRow>());
+				com.theta360.general.view.ImageListArrayAdapter empty = new com.theta360.general.view.ImageListArrayAdapter(ImageListActivity.this, R.layout.listlayout_object, new ArrayList<com.theta360.general.view.ImageRow>());
 				objectList.setAdapter(empty);
 
 				if (isChecked) {
@@ -310,10 +319,10 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 	}
 
 
-	private class ShowLiveViewTask extends AsyncTask<String, String, MJpegInputStream> {
+	private class ShowLiveViewTask extends AsyncTask<String, String, com.theta360.general.view.MJpegInputStream> {
 		@Override
-		protected MJpegInputStream doInBackground(String... ipAddress) {
-			MJpegInputStream mjis = null;
+		protected com.theta360.general.view.MJpegInputStream doInBackground(String... ipAddress) {
+			com.theta360.general.view.MJpegInputStream mjis = null;
 			final int MAX_RETRY_COUNT = 20;
 
 			for (int retryCount = 0; retryCount < MAX_RETRY_COUNT; retryCount++) {
@@ -321,7 +330,7 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 					publishProgress("start Live view");
 					HttpConnector camera = new HttpConnector(ipAddress[0]);
 					InputStream is = camera.getLivePreview();
-					mjis = new MJpegInputStream(is);
+					mjis = new com.theta360.general.view.MJpegInputStream(is);
 					retryCount = MAX_RETRY_COUNT;
 				} catch (IOException e) {
 					try {
@@ -358,7 +367,7 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 		}
 	}
 
-	private class LoadObjectListTask extends AsyncTask<Void, String, List<ImageRow>> {
+	private class LoadObjectListTask extends AsyncTask<Void, String, List<com.theta360.general.view.ImageRow>> {
 
 		private ProgressBar progressBar;
 
@@ -372,7 +381,7 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 		}
 
 		@Override
-		protected List<ImageRow> doInBackground(Void... params) {
+		protected List<com.theta360.general.view.ImageRow> doInBackground(Void... params) {
 			try {
 				publishProgress("------");
 				publishProgress("connecting to " + cameraIpAddress + "...");
@@ -383,10 +392,10 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 				publishProgress("connected.");
 				publishProgress(deviceInfo.getClass().getSimpleName() + ":<" + deviceInfo.getModel() + ", " + deviceInfo.getDeviceVersion() + ", " + deviceInfo.getSerialNumber() + ">");
 
-				List<ImageRow> imageRows = new ArrayList<>();
+				List<com.theta360.general.view.ImageRow> imageRows = new ArrayList<>();
 
 				StorageInfo storage = camera.getStorageInfo();
-				ImageRow storageCapacity = new ImageRow();
+				com.theta360.general.view.ImageRow storageCapacity = new com.theta360.general.view.ImageRow();
 				int freeSpaceInImages = storage.getFreeSpaceInImages();
 				int megaByte = 1024 * 1024;
 				long freeSpace = storage.getFreeSpaceInBytes() / megaByte;
@@ -398,7 +407,7 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 				int objectSize = objects.size();
 
 				for (int i = 0; i < objectSize; i++) {
-					ImageRow imageRow = new ImageRow();
+					com.theta360.general.view.ImageRow imageRow = new com.theta360.general.view.ImageRow();
 					ImageInfo object = objects.get(i);
 					imageRow.setFileId(object.getFileId());
 					imageRow.setFileSize(object.getFileSize());
@@ -439,19 +448,19 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 		}
 
 		@Override
-		protected void onPostExecute(List<ImageRow> imageRows) {
+		protected void onPostExecute(List<com.theta360.general.view.ImageRow> imageRows) {
 			if (imageRows != null) {
 				TextView storageInfo = (TextView) findViewById(R.id.storage_info);
 				String info = imageRows.get(0).getFileName();
 				imageRows.remove(0);
 				storageInfo.setText(info);
 
-				ImageListArrayAdapter imageListArrayAdapter = new ImageListArrayAdapter(ImageListActivity.this, R.layout.listlayout_object, imageRows);
+				com.theta360.general.view.ImageListArrayAdapter imageListArrayAdapter = new ImageListArrayAdapter(ImageListActivity.this, R.layout.listlayout_object, imageRows);
 				objectList.setAdapter(imageListArrayAdapter);
 				objectList.setOnItemClickListener(new OnItemClickListener() {
 					@Override
 					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-						ImageRow selectedItem = (ImageRow) parent.getItemAtPosition(position);
+						com.theta360.general.view.ImageRow selectedItem = (com.theta360.general.view.ImageRow) parent.getItemAtPosition(position);
 						if (selectedItem.isPhoto()) {
 							byte[] thumbnail = selectedItem.getThumbnail();
 							String fileId = selectedItem.getFileId();
@@ -465,7 +474,7 @@ public class ImageListActivity extends Activity implements ImageSizeDialog.Dialo
 					private String mFileId;
 					@Override
 					public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-						ImageRow selectedItem = (ImageRow) parent.getItemAtPosition(position);
+						com.theta360.general.view.ImageRow selectedItem = (ImageRow) parent.getItemAtPosition(position);
 						mFileId = selectedItem.getFileId();
 						String fileName = selectedItem.getFileName();
 

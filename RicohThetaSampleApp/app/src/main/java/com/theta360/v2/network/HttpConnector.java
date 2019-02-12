@@ -2,7 +2,8 @@ package com.theta360.v2.network;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import com.theta360.v2.model.ImageSize;
+import com.theta360.general.model.ImageSize;
+import com.theta360.general.network.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
