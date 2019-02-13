@@ -23,8 +23,19 @@ android {
         versionName isCi ? simpleReleaseVersionName() : VERSION_NAME
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
+
+        buildConfigField "String", "SIMPLE_VERSION_NAME", escape(simpleReleaseVersionName())
+        buildConfigField "String", "CANONICAL_VERSION_NAME", escape(canonicalReleaseVersionName())
+        buildConfigField "String", "COMMIT_HASH", escape(commitHash())
+        buildConfigField "String", "BRANCH", escape(branchNameByGit())
+        buildConfigField "String", "BUILD_DATE", escape(new Date().getTime())
+
+        // to avoid lib compile for release when app is compiled for debug: //http://stackoverflow.com/a/30134955/2736039
+        defaultPublishConfig 'release'
+        publishNonDefault true
     }
 
     buildTypes {
@@ -105,7 +116,6 @@ dependencies {
     implementation libs.rx2java
     implementation libs.rx2Android
     implementation libs.rx2Kotlin
-
 }
 
 // region javadoc
@@ -157,45 +167,8 @@ dexcount {
 
 // endregion
 
-// region bintray config @see https://github.com/bintray/gradle-bintray-plugin#buildgradle
-
-apply plugin: 'com.jfrog.bintray'
-
-group = 'com.exozet'
-version = simpleReleaseVersionName()
-
-bintray {
-
-    user = 'exozet'
-    key = 'd439ec7e3f4a7e5203122fd2e92eb543848243f6'
-
-    dryRun = false
-    publish = true
-
-    pkg {
-        repo = 'maven'
-        name = 'RicohThetaAndroidSDK'
-        desc = 'Android SDK for Ricoh Theta S and Theta V'
-        userOrg = 'exozetag'
-        licenses = ['MIT']
-        vcsUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk.git'
-        websiteUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk'
-        labels = ["android", "ricoh theta s", "rico theta v", "library", "sdk"]
-        publicDownloadNumbers = true
-
-        version {
-            name = simpleReleaseVersionName()
-            desc = 'Android SDK for Ricoh Theta S and Theta V'
-            released = new Date()
-            vcsTag = simpleReleaseVersionName()
-//            mavenCentralSync {
-//                sync = true //[Default: true] Determines whether to sync the version to Maven Central.
-//                user = 'userToken' //OSS user token: mandatory
-//                password = 'paasword' //OSS user password: mandatory
-//                close = '1' //Optional property. By default the staging repository is closed and artifacts are released to Maven Central. You can optionally turn this behaviour off (by puting 0 as value) and release the version manually.
-//            }
-        }
-    }
+def escape(Object value) {
+    return "\"" + value + "\""
 }
 
-// endregion
+apply from: "bintray.gradle"

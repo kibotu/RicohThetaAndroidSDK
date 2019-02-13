@@ -136,7 +136,10 @@ dependencies {
     implementation libs.supportDesign
     implementation libs.constraintLayout
     implementation libs.supportVectorDrawable
-    implementation project(":ricohtheta")
+
+
+    implementation 'com.exozet:ricohtheta:1.0.0'
+//    implementation project(":ricohtheta")
 
     debugImplementation libs.leakcanaryDebug
     debugImplementation libs.leakcanaryDebugSupportFragments

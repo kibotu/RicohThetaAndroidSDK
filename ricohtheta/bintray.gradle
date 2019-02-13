@@ -1,0 +1,40 @@
+apply plugin: 'com.jfrog.bintray'
+
+group = 'com.exozet'
+version = simpleReleaseVersionName()
+
+// https://github.com/bintray/gradle-bintray-plugin#buildgradle
+
+bintray {
+
+    dryRun = false
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('bintray.properties').newDataInputStream())
+    user = properties.getProperty('bintray.user')
+    key = properties.getProperty('bintray.apikey')
+    publish = true
+
+    pkg {
+        repo = 'maven'
+        name = 'RicohThetaAndroidSDK'
+        userOrg = properties.getProperty('bintray.organization')
+        licenses = ['MIT']
+        vcsUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk.git'
+        websiteUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk'
+        labels = ["android", "ricoh theta s", "rico theta v", "library", "sdk"]
+        publicDownloadNumbers = true
+
+        version {
+            name = simpleReleaseVersionName()
+            desc = "Android SDK for Ricoh Theta S and Theta V"
+            released = new Date()
+            vcsTag = simpleReleaseVersionName()
+        }
+
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://git.exozet.com/computop/mobileSDK_Android.git'
+        websiteUrl = 'https://git.exozet.com/computop/mobileSDK_Android.git'
+    }
+    configurations = ['archives']
+}
