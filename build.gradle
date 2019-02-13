@@ -12,6 +12,8 @@ buildscript {
         classpath plugin.gradleBuildTools
         classpath plugin.kotlinGradle
         classpath plugin.kotlinApt
+        classpath pluginLibrary.mavenGradle
+        classpath plugin.dexcountGradle
     }
 }
 

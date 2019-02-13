@@ -8,6 +8,9 @@ ext {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
 
@@ -22,6 +25,7 @@ android {
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
     }
 
     buildTypes {
@@ -99,3 +103,53 @@ dependencies {
     implementation libs.kotlinJdk8
     implementation libs.supportAppCompat
 }
+
+
+// region javadoc
+
+// build a jar with source files
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+// endregion
+
+// region dexcount
+
+dexcount {
+    format = "list"
+    includeClasses = false
+    includeClassCount = false
+    includeFieldCount = true
+    includeTotalMethodCount = false
+    orderByMethodCount = false
+    verbose = false
+    maxTreeDepth = Integer.MAX_VALUE
+    teamCityIntegration = false
+    teamCitySlug = null
+    runOnEachPackage = true
+    maxMethodCount = 64000
+    enabled = true
+}
+
+// endregion
