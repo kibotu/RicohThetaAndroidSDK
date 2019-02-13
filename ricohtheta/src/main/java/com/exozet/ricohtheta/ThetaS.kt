@@ -1,10 +1,14 @@
 package com.exozet.ricohtheta
 
-class ThetaS : Theta(){
+import com.exozet.ricohtheta.internal.network.v2.Http2Connector
 
-    override fun connect(){
 
-    }
+object ThetaS : Theta(){
+
+
+    override fun connect(ip4Address: String) = Http2Connector(ip4Address)
+
+
 
 
     override var versionName: VersionNames = Theta.VersionNames.Theta_S

@@ -1,11 +1,10 @@
 package com.exozet.ricohtheta
 
 import android.net.Uri
+import com.exozet.ricohtheta.internal.network.HttpConnector
 import com.exozet.ricohtheta.internal.view.MJpegView
-import io.reactivex.Observable
 
 open abstract class Theta {
-
 
     enum class VersionNames {
         Undefined,
@@ -13,7 +12,8 @@ open abstract class Theta {
         Theta_V
     }
 
-    open fun connect() {}
+    open abstract fun connect(ip4Address: String) : HttpConnector
+
     open fun disconnect() {}
     val isConnected: Boolean
         get() {

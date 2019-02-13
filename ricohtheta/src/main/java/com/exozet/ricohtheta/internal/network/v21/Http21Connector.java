@@ -1,4 +1,4 @@
-package com.exozet.ricohtheta.internal.network.v2;
+package com.exozet.ricohtheta.internal.network.v21;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,7 +19,7 @@ import java.util.TimerTask;
 /**
  * HTTP connection to device
  */
-public class HttpConnector {
+public class Http21Connector extends HttpConnector{
     private final static long CHECK_STATUS_PERIOD_MS = 50;
     private String mIpAddress = null;
     private String mSessionId = null;
@@ -29,16 +29,12 @@ public class HttpConnector {
     private Timer mCheckStatusTimer = null;
     private HttpEventListener mHttpEventListener = null;
 
-    public enum ShootResult {
-        SUCCESS, FAIL_CAMERA_DISCONNECTED, FAIL_STORE_FULL, FAIL_DEVICE_BUSY
-    }
-
     /**
      * Constructor
      *
      * @param cameraIpAddress IP address of connection destination
      */
-    public HttpConnector(String cameraIpAddress) {
+    public Http21Connector(String cameraIpAddress) {
         mIpAddress = cameraIpAddress;
     }
 
@@ -376,7 +372,7 @@ public class HttpConnector {
 
     /**
      * Take photo<p>
-     * After shooting, the status is checked for each {@link HttpConnector#CHECK_STATUS_PERIOD_MS} and the listener notifies you of the status.
+     * After shooting, the status is checked for each {@link com.exozet.ricohtheta.internal.network.v2.Http21Connector#CHECK_STATUS_PERIOD_MS} and the listener notifies you of the status.
      *
      * @param listener Post-shooting event listener
      * @return Shooting request results
