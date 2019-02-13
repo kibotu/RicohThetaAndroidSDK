@@ -11,6 +11,10 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.getkeepsafe.dexcount'
+apply plugin: 'saantiaguilera.bintray.publish'
+
+group = 'com.exozet'
+version = VERSION_NAME
 
 android {
 
@@ -104,7 +108,6 @@ dependencies {
     implementation libs.supportAppCompat
 }
 
-
 // region javadoc
 
 // build a jar with source files
@@ -153,3 +156,18 @@ dexcount {
 }
 
 // endregion
+
+publishGlobalConfigurations {
+    bintrayRepository = 'maven'
+
+    githubUrl = "https://git.exozet.com/mobile-de/ricohthetaandroidsdk"
+    websiteUrl = "https://git.exozet.com/mobile-de/ricohthetaandroidsdk"
+
+    publicDownloadNumbers = "true"
+
+    bintrayUser = "developer@exozet.com"// System.getenv('MY_BINTRAY_USER')
+    bintrayApiKey = "Ex0zet1337" // System.getenv('MY_BINTRAY_API_KEY')
+
+    licenseUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk/blob/develop/LICENSE.md'
+    licenseName = 'MIT'
+}

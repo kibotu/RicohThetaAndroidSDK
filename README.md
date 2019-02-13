@@ -1,4 +1,4 @@
-# Simple Ricoh Theta Android SDK [![Build Status](https://app.bitrise.io/app/3cbaae287f980196/status.svg?token=H__5RNcOW8Q_RGvi23mwUQ&branch=develop)](https://app.bitrise.io/app/3cbaae287f980196)
+# Simple Ricoh Theta Android SDK [![Build Status](https://app.bitrise.io/app/3cbaae287f980196/status.svg?token=H__5RNcOW8Q_RGvi23mwUQ)](https://app.bitrise.io/app/3cbaae287f980196)
 
 
 Features
