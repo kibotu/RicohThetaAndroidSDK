@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.network;
+package com.exozet.theta360.internal.network;
 
 import android.util.Xml;
 
@@ -22,6 +22,7 @@ public class XMP {
 
     /**
      * Constructor
+     *
      * @param original Raw data of image
      */
     public XMP(byte[] original) {
@@ -62,6 +63,7 @@ public class XMP {
 
     /**
      * Acquire pitch angle set for XMP
+     *
      * @return Pitch angle
      */
     public Double getPosePitchDegrees() {
@@ -70,6 +72,7 @@ public class XMP {
 
     /**
      * Acquire roll angle set for XMP
+     *
      * @return Roll angle
      */
     public Double getPoseRollDegrees() {
@@ -78,17 +81,17 @@ public class XMP {
 
     /**
      * Search position of specific data pattern
-     * @param original Search target data
-     * @param sub Searched data
+     *
+     * @param original   Search target data
+     * @param sub        Searched data
      * @param startIndex Search start position
      * @return The position where the searched data starts. "-1" is returned if there are no hits.
      */
-    private int indexOf(byte[] original, byte[] sub, int startIndex)
-    {
+    private int indexOf(byte[] original, byte[] sub, int startIndex) {
         int subIndex = 0;
-        for(int originalIndex = startIndex; originalIndex < original.length; originalIndex++) {
-            if(original[originalIndex] == sub[subIndex]) {
-                if(subIndex == sub.length - 1) {
+        for (int originalIndex = startIndex; originalIndex < original.length; originalIndex++) {
+            if (original[originalIndex] == sub[subIndex]) {
+                if (subIndex == sub.length - 1) {
                     return originalIndex - subIndex;
                 }
                 subIndex++;

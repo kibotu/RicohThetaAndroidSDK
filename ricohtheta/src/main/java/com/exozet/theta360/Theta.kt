@@ -1,28 +1,31 @@
 package com.exozet.theta360
 
 import android.net.Uri
+import com.exozet.theta360.internal.view.MJpegView
 
 object Theta {
 
 
-    enum class VersionNames{
+    enum class VersionNames {
         Theta_S,
         Theta_V
     }
 
-    fun connect(){}
-    fun disconnect(){}
-    val isConnected : Boolean
+    fun connect() {}
+    fun disconnect() {}
+    val isConnected: Boolean
         get() {
-        return true
+            return true
         }
 
 
-    val versionName : VersionNames = VersionNames.Theta_S
+    val versionName: VersionNames = VersionNames.Theta_S
 
-    fun takePicture() : Uri{ return Uri.EMPTY}//(Observable machen -> Stream + delete image )
+    fun takePicture(): Uri {
+        return Uri.EMPTY
+    }//(Observable machen -> Stream + delete image )
     //fun getThumbnail() : Uri{ return Uri.EMPTY}
 
-    fun startLiveView(view : com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.camera.view.MJpegView){}
-    fun stopLiveView(){}
+    fun startLiveView(view: MJpegView) {}
+    fun stopLiveView() {}
 }

@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.network;
+package com.exozet.theta360.internal.network;
 
 /**
  * Information class of device storage
@@ -10,6 +10,7 @@ public class StorageInfo {
 
     /**
      * Acquire remaining number of images that can be shot
+     *
      * @return Remaining number of images that can be shot
      */
     public int getFreeSpaceInImages() {
@@ -18,6 +19,7 @@ public class StorageInfo {
 
     /**
      * Set remaining number of images that can be shot
+     *
      * @param remainingPictures Remaining number of images that can be shot
      */
     public void setFreeSpaceInImages(int remainingPictures) {
@@ -26,6 +28,7 @@ public class StorageInfo {
 
     /**
      * Acquire remaining capacity
+     *
      * @return Remaining capacity (unit: bytes)
      */
     public long getFreeSpaceInBytes() {
@@ -34,6 +37,7 @@ public class StorageInfo {
 
     /**
      * Set remaining capacity
+     *
      * @param remainingSpace Remaining capacity (unit: bytes)
      */
     public void setFreeSpaceInBytes(long remainingSpace) {
@@ -42,6 +46,7 @@ public class StorageInfo {
 
     /**
      * Acquire total capacity of device
+     *
      * @return Total capacity of device (unit: bytes)
      */
     public long getMaxCapacity() {
@@ -50,6 +55,7 @@ public class StorageInfo {
 
     /**
      * Set total capacity of device
+     *
      * @param totalSpace Total capacity of device (unit: bytes)
      */
     public void setMaxCapacity(long totalSpace) {

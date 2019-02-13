@@ -1,9 +1,8 @@
-package com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp
+package com.exozet.ricohtheta.app
 
 import android.os.Bundle
-import android.support.design.widget.BottomNavigationView
-import android.support.v7.app.AppCompatActivity
-import com.exozet.ricohthetasampleapp.R
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 

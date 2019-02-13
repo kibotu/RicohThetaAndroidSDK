@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.view;
+package com.exozet.theta360.internal.view;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,6 +22,7 @@ public class MJpegInputStream extends DataInputStream {
 
     /**
      * Constructor
+     *
      * @param inputStream Input stream for receiving data
      */
     public MJpegInputStream(InputStream inputStream) {
@@ -30,19 +31,20 @@ public class MJpegInputStream extends DataInputStream {
 
     /**
      * Acquire end position of specified character string
+     *
      * @param dataInputStream Input stream for receiving data
-     * @param sequence Specified character string
+     * @param sequence        Specified character string
      * @return End position of specified character string
      * @throws IOException
      */
     private int getEndOfSequence(DataInputStream dataInputStream, byte[] sequence) throws IOException {
         int sequenceIndex = 0;
         byte readByteData;
-        for(int index = 0; index < FRAME_MAX_LENGTH; index++) {
+        for (int index = 0; index < FRAME_MAX_LENGTH; index++) {
             readByteData = (byte) dataInputStream.readUnsignedByte();
-            if(readByteData == sequence[sequenceIndex]) {
+            if (readByteData == sequence[sequenceIndex]) {
                 sequenceIndex++;
-                if(sequenceIndex == sequence.length) {
+                if (sequenceIndex == sequence.length) {
                     return index + 1;
                 }
             } else {
@@ -54,8 +56,9 @@ public class MJpegInputStream extends DataInputStream {
 
     /**
      * Acquire start position of specified character string
+     *
      * @param dataInputStream Input stream for receiving data
-     * @param sequence Specified character string
+     * @param sequence        Specified character string
      * @return Start position of specified character string
      * @throws IOException
      */
@@ -66,6 +69,7 @@ public class MJpegInputStream extends DataInputStream {
 
     /**
      * Acquire data length from header
+     *
      * @param headerByteData Header data
      * @return Data length
      * @throws IOException
@@ -80,6 +84,7 @@ public class MJpegInputStream extends DataInputStream {
 
     /**
      * Acquire image data for 1 frame
+     *
      * @return Image data for 1 frame
      * @throws IOException
      */

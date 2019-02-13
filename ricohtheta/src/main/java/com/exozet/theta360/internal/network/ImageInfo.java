@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.network;
+package com.exozet.theta360.internal.network;
 
 /**
  * Information class of media file
@@ -17,6 +17,7 @@ public class ImageInfo {
 
     /**
      * Acquire file name
+     *
      * @return File name
      */
     public String getFileName() {
@@ -25,6 +26,7 @@ public class ImageInfo {
 
     /**
      * Set file name
+     *
      * @param fileName File name
      */
     public void setFileName(String fileName) {
@@ -33,6 +35,7 @@ public class ImageInfo {
 
     /**
      * Acquire File ID
+     *
      * @return File ID
      */
     public String getFileId() {
@@ -41,6 +44,7 @@ public class ImageInfo {
 
     /**
      * Set File ID
+     *
      * @param fileId File ID
      */
     public void setFileId(String fileId) {
@@ -49,6 +53,7 @@ public class ImageInfo {
 
     /**
      * Acquire file size
+     *
      * @return File size (unit: bytes)
      */
     public long getFileSize() {
@@ -57,6 +62,7 @@ public class ImageInfo {
 
     /**
      * Set file size
+     *
      * @param fileSize File size (unit: bytes)
      */
     public void setFileSize(long fileSize) {
@@ -65,6 +71,7 @@ public class ImageInfo {
 
     /**
      * Acquire shooting time
+     *
      * @return Shooting time
      */
     public String getCaptureDate() {
@@ -73,6 +80,7 @@ public class ImageInfo {
 
     /**
      * Set shooting time
+     *
      * @param captureDate Shooting time
      */
     public void setCaptureDate(String captureDate) {
@@ -81,6 +89,7 @@ public class ImageInfo {
 
     /**
      * Acquire media format
+     *
      * @return Media format
      */
     public String getFileFormat() {
@@ -90,6 +99,7 @@ public class ImageInfo {
     /**
      * Set media format<p>
      * Set {@link ImageInfo#FILE_FORMAT_CODE_EXIF_JPEG} or {@link ImageInfo#FILE_FORMAT_CODE_EXIF_MPEG}.
+     *
      * @param fileFormat Media format
      */
     public void setFileFormat(String fileFormat) {
@@ -98,6 +108,7 @@ public class ImageInfo {
 
     /**
      * Acquire image width
+     *
      * @return Image width
      */
     public int getWidth() {
@@ -106,6 +117,7 @@ public class ImageInfo {
 
     /**
      * Set image width
+     *
      * @param width Image width
      */
     public void setWidth(int width) {
@@ -114,6 +126,7 @@ public class ImageInfo {
 
     /**
      * Acquire image height
+     *
      * @return Image height
      */
     public int getHeight() {
@@ -122,6 +135,7 @@ public class ImageInfo {
 
     /**
      * Set image height
+     *
      * @param height Image height
      */
     public void setHeight(int height) {

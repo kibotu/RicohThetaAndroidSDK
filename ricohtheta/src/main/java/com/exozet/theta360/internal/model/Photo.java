@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.model;
+package com.exozet.theta360.internal.model;
 
 import android.graphics.Bitmap;
 
@@ -19,6 +19,7 @@ public class Photo {
 
     /**
      * Constructor
+     *
      * @param photo Photo object
      */
     public Photo(Bitmap photo) {
@@ -27,10 +28,11 @@ public class Photo {
 
     /**
      * Constructor
-     * @param photo Photo object
+     *
+     * @param photo            Photo object
      * @param orientationAngle Orientation angle
-     * @param elevationAngle Elevation angle
-     * @param horizontalAngle Horizontal angle
+     * @param elevationAngle   Elevation angle
+     * @param horizontalAngle  Horizontal angle
      */
     public Photo(Bitmap photo, Double orientationAngle, Double elevationAngle, Double horizontalAngle) {
         this();
@@ -44,6 +46,7 @@ public class Photo {
 
     /**
      * Acquires the orientation angle
+     *
      * @return Orientation angle
      */
     public Double getOrientationAngle() {
@@ -52,6 +55,7 @@ public class Photo {
 
     /**
      * Acquires the elevation angle
+     *
      * @return Elevation angle
      */
     public Double getElevetionAngle() {
@@ -60,6 +64,7 @@ public class Photo {
 
     /**
      * Acquires the horizontal angle
+     *
      * @return Horizontal angle
      */
     public Double getHorizontalAngle() {
@@ -68,6 +73,7 @@ public class Photo {
 
     /**
      * Acquires the photo object
+     *
      * @return Photo object
      */
     public Bitmap getPhoto() {
@@ -76,6 +82,7 @@ public class Photo {
 
     /**
      * Updates the photo object
+     *
      * @param drawable Photo object
      */
     public void updatePhoto(Bitmap drawable) {

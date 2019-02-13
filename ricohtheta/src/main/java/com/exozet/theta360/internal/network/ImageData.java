@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.network;
+package com.exozet.theta360.internal.network;
 
 /**
  * Image data class
@@ -11,6 +11,7 @@ public class ImageData {
 
     /**
      * Acquire raw data of image
+     *
      * @return Raw data of image
      */
     public byte[] getRawData() {
@@ -19,6 +20,7 @@ public class ImageData {
 
     /**
      * Set raw data of image
+     *
      * @param rawData Raw data of image
      */
     public void setRawData(byte[] rawData) {
@@ -27,6 +29,7 @@ public class ImageData {
 
     /**
      * Acquire pitch angle
+     *
      * @return Pitch angle
      */
     public Double getPitch() {
@@ -35,6 +38,7 @@ public class ImageData {
 
     /**
      * Set pitch angle
+     *
      * @param pitch Pitch angle (value must be between -90 and 90)
      */
     public void setPitch(Double pitch) {
@@ -43,6 +47,7 @@ public class ImageData {
 
     /**
      * Acquire roll angle
+     *
      * @return Roll angle
      */
     public Double getRoll() {
@@ -51,6 +56,7 @@ public class ImageData {
 
     /**
      * Set roll angle
+     *
      * @param roll Roll angle (value must be between -180 and 180)
      */
     public void setRoll(Double roll) {
@@ -59,6 +65,7 @@ public class ImageData {
 
     /**
      * Acquire yaw angle
+     *
      * @return Yaw angle
      */
     public Double getYaw() {
@@ -67,6 +74,7 @@ public class ImageData {
 
     /**
      * Set yaw angle
+     *
      * @param yaw Yaw angle (value must be between 0 and 360)
      */
     public void setYaw(Double yaw) {

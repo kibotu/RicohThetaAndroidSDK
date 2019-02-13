@@ -1,15 +1,10 @@
-package com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.camera.view;
+package com.exozet.theta360.internal.view;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.*;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import com.exozet.theta360.general.view.MJpegInputStream;
 
 import java.io.IOException;
 
@@ -25,6 +20,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
     /**
      * Constructor
+     *
      * @param context
      */
     public MJpegView(Context context) {
@@ -34,6 +30,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
     /**
      * Constructor
+     *
      * @param context
      * @param attrs
      */
@@ -44,6 +41,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
     /**
      * Constructor
+     *
      * @param context
      * @param attrs
      * @param defStyleAttr
@@ -72,7 +70,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
             stopPlay();
         }
 
-        if(mMJpegInputStream != null) {
+        if (mMJpegInputStream != null) {
             if (mMJpegViewThread != null) {
                 if (mMJpegViewThread.getState() == Thread.State.NEW) {
                     mMJpegViewThread.start();
@@ -105,6 +103,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
     /**
      * Set source stream for receiving motion JPEG
+     *
      * @param source Source stream
      */
     public void setSource(MJpegInputStream source) {
@@ -119,7 +118,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        synchronized(holder) {
+        synchronized (holder) {
             mDisplayWidth = width;
             mDisplayHeight = height;
         }
@@ -140,6 +139,7 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
         /**
          * Constructor
+         *
          * @param surfaceHolder
          */
         public MJpegViewThread(SurfaceHolder surfaceHolder) {
@@ -148,8 +148,9 @@ public class MJpegView extends SurfaceView implements SurfaceHolder.Callback {
 
         /**
          * Acquire image size according to display area<p>
-         *     Calculates the size that fits the display area while maintaining the aspect ratio of the motion JPEG.
-         * @param bitmapWidth Width of motion JPEG
+         * Calculates the size that fits the display area while maintaining the aspect ratio of the motion JPEG.
+         *
+         * @param bitmapWidth  Width of motion JPEG
          * @param bitmapHeight Height of motion JPEG
          * @return Image size
          */

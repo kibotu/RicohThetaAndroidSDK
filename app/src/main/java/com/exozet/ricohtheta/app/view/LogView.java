@@ -1,4 +1,4 @@
-package com.exozet.ricohthetasampleapp.com.exozet.ricohthetasampleapp.camera.view;
+package com.exozet.ricohtheta.app.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

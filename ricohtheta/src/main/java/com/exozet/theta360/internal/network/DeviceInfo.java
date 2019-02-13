@@ -1,4 +1,4 @@
-package com.exozet.theta360.general.network;
+package com.exozet.theta360.internal.network;
 
 /**
  * Device information class
@@ -16,6 +16,7 @@ public class DeviceInfo {
 
     /**
      * Acquire model name
+     *
      * @return Model name
      */
     public String getModel() {
@@ -24,6 +25,7 @@ public class DeviceInfo {
 
     /**
      * Set model name
+     *
      * @param model Model name
      */
     public void setModel(String model) {
@@ -32,6 +34,7 @@ public class DeviceInfo {
 
     /**
      * Acquire serial number
+     *
      * @return Serial number
      */
     public String getSerialNumber() {
@@ -40,6 +43,7 @@ public class DeviceInfo {
 
     /**
      * Set serial number
+     *
      * @param serialNumber Serial number
      */
     public void setSerialNumber(String serialNumber) {
@@ -48,7 +52,8 @@ public class DeviceInfo {
 
     /**
      * Acquire firmware version
-      * @return Firmware version
+     *
+     * @return Firmware version
      */
     public String getDeviceVersion() {
         return mDeviceVersion;
@@ -56,6 +61,7 @@ public class DeviceInfo {
 
     /**
      * Set firmware version
+     *
      * @param version Firmware version
      */
     public void setDeviceVersion(String version) {
