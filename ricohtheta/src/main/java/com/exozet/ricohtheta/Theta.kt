@@ -2,24 +2,26 @@ package com.exozet.ricohtheta
 
 import android.net.Uri
 import com.exozet.ricohtheta.internal.view.MJpegView
+import io.reactivex.Observable
 
-object Theta {
+open abstract class Theta {
 
 
     enum class VersionNames {
+        Undefined,
         Theta_S,
         Theta_V
     }
 
-    fun connect() {}
-    fun disconnect() {}
+    open fun connect() {}
+    open fun disconnect() {}
     val isConnected: Boolean
         get() {
             return true
         }
 
 
-    val versionName: VersionNames = Theta.VersionNames.Theta_S
+    open val versionName: VersionNames = Theta.VersionNames.Undefined
 
     fun takePicture(): Uri {
         return Uri.EMPTY

@@ -102,6 +102,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation libs.kotlinJdk8
     implementation libs.supportAppCompat
+
+    implementation libs.rx2java
+    implementation libs.rx2Android
+    implementation libs.rx2Kotlin
+
 }
 
 
