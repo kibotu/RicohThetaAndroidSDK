@@ -63,6 +63,7 @@ android {
         checkReleaseBuilds false
         ignoreWarnings true       // false by default
         quiet true                // false by default
+        tasks.lint.enabled = false
     }
 
     // endregion
@@ -140,6 +141,10 @@ dexcount {
 
 def escape(Object value) {
     return "\"" + value + "\""
+}
+
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
 }
 
 apply from: "${project.rootDir}/Android-Dependencies/javadoc.gradle"

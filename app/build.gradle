@@ -83,6 +83,7 @@ android {
         checkReleaseBuilds false
         ignoreWarnings true       // false by default
         quiet true                // false by default
+        tasks.lint.enabled = false
     }
 
     // endregion
@@ -144,4 +145,8 @@ dependencies {
     debugImplementation libs.leakcanaryDebug
     debugImplementation libs.leakcanaryDebugSupportFragments
     releaseImplementation libs.leakcanaryRelease
+}
+
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
 }
