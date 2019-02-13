@@ -4,7 +4,6 @@ ext {
     VSC = VSC_PATH
     isCi = true
 }
-
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
@@ -154,6 +153,49 @@ dexcount {
     runOnEachPackage = true
     maxMethodCount = 64000
     enabled = true
+}
+
+// endregion
+
+// region bintray config @see https://github.com/bintray/gradle-bintray-plugin#buildgradle
+
+apply plugin: 'com.jfrog.bintray'
+
+group = 'com.exozet'
+version = simpleReleaseVersionName()
+
+bintray {
+
+    user = 'exozet'
+    key = 'd439ec7e3f4a7e5203122fd2e92eb543848243f6'
+
+    dryRun = false
+    publish = true
+
+    pkg {
+        repo = 'maven'
+        name = 'RicohThetaAndroidSDK'
+        desc = 'Android SDK for Ricoh Theta S and Theta V'
+        userOrg = 'exozetag'
+        licenses = ['MIT']
+        vcsUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk.git'
+        websiteUrl = 'https://git.exozet.com/mobile-de/ricohthetaandroidsdk'
+        labels = ["android", "ricoh theta s", "rico theta v", "library", "sdk"]
+        publicDownloadNumbers = true
+
+        version {
+            name = simpleReleaseVersionName()
+            desc = 'Android SDK for Ricoh Theta S and Theta V'
+            released = new Date()
+            vcsTag = simpleReleaseVersionName()
+//            mavenCentralSync {
+//                sync = true //[Default: true] Determines whether to sync the version to Maven Central.
+//                user = 'userToken' //OSS user token: mandatory
+//                password = 'paasword' //OSS user password: mandatory
+//                close = '1' //Optional property. By default the staging repository is closed and artifacts are released to Maven Central. You can optionally turn this behaviour off (by puting 0 as value) and release the version manually.
+//            }
+        }
+    }
 }
 
 // endregion
