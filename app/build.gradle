@@ -131,9 +131,14 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation libs.kotlinJdk8
+    implementation libs.supportMultidex
     implementation libs.supportAppCompat
     implementation libs.supportDesign
     implementation libs.constraintLayout
     implementation libs.supportVectorDrawable
     implementation project(":ricohtheta")
+
+    debugImplementation libs.leakcanaryDebug
+    debugImplementation libs.leakcanaryDebugSupportFragments
+    releaseImplementation libs.leakcanaryRelease
 }
