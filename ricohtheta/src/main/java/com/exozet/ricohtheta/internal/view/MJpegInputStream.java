@@ -1,4 +1,4 @@
-package com.exozet.theta360.internal.view;
+package com.exozet.ricohtheta.internal.view;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

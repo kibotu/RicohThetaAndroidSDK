@@ -1,4 +1,4 @@
-package com.exozet.theta360.internal.network;
+package com.exozet.ricohtheta.internal.network;
 
 /**
  * Information class of device storage

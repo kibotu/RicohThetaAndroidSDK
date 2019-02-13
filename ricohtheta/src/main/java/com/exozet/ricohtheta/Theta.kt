@@ -1,7 +1,7 @@
-package com.exozet.theta360
+package com.exozet.ricohtheta
 
 import android.net.Uri
-import com.exozet.theta360.internal.view.MJpegView
+import com.exozet.ricohtheta.internal.view.MJpegView
 
 object Theta {
 
@@ -19,7 +19,7 @@ object Theta {
         }
 
 
-    val versionName: VersionNames = VersionNames.Theta_S
+    val versionName: VersionNames = Theta.VersionNames.Theta_S
 
     fun takePicture(): Uri {
         return Uri.EMPTY

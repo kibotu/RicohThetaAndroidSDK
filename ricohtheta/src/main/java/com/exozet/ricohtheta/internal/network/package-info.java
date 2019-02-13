@@ -1,4 +1,4 @@
 /**
  * Package storing Android HTTP communication program
  */
-package com.exozet.theta360.internal.network;
+package com.exozet.ricohtheta.internal.network;

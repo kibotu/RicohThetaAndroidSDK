@@ -1,9 +1,9 @@
-package com.exozet.theta360.internal.network.v2;
+package com.exozet.ricohtheta.internal.network.v2;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import com.exozet.theta360.internal.model.ImageSize;
-import com.exozet.theta360.internal.network.*;
+import com.exozet.ricohtheta.internal.model.ImageSize;
+import com.exozet.ricohtheta.internal.network.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
