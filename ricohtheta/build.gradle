@@ -8,8 +8,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.getkeepsafe.dexcount'
+
 
 android {
 
@@ -118,35 +118,6 @@ dependencies {
     implementation libs.rx2Kotlin
 }
 
-// region javadoc
-
-// build a jar with source files
-
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.sourceFiles
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    classpath += configurations.compile
-}
-
-// build a jar with javadoc
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
-
-// endregion
-
 // region dexcount
 
 dexcount {
@@ -171,4 +142,5 @@ def escape(Object value) {
     return "\"" + value + "\""
 }
 
-apply from: "bintray.gradle"
+apply from: "${project.rootDir}/Android-Dependencies/javadoc.gradle"
+apply from: "${project.rootDir}/Android-Dependencies/bintray.gradle"
