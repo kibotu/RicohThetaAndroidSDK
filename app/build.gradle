@@ -138,8 +138,8 @@ dependencies {
     implementation libs.supportVectorDrawable
 
 
-    implementation 'com.exozet:ricohtheta:1.0.0'
-//    implementation project(":ricohtheta")
+//    implementation 'com.exozet:ricohtheta:1.0.0'
+    implementation project(":ricohtheta")
 
     debugImplementation libs.leakcanaryDebug
     debugImplementation libs.leakcanaryDebugSupportFragments
