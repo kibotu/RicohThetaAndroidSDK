@@ -12,11 +12,10 @@ buildscript {
         classpath plugin.gradleBuildTools
         classpath plugin.kotlinGradle
         classpath plugin.kotlinApt
-        classpath pluginLibrary.mavenGradle
         classpath plugin.dexcountGradle
 
-        classpath "com.saantiaguilera.gradle.publish.helper:core:4.0.0"
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0")
+        classpath pluginLibrary.gradleBintrayPlugin
+        classpath pluginLibrary.mavenGradle
     }
 }
 
