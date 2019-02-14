@@ -19,7 +19,7 @@ import java.util.TimerTask;
 /**
  * HTTP connection to device
  */
-public class Http2Connector extends HttpConnector {
+public class Http2Connector implements HttpConnector {
     private final static long CHECK_STATUS_PERIOD_MS = 50;
     private String mIpAddress = null;
     private String mSessionId = null;
