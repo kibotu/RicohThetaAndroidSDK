@@ -1,5 +1,6 @@
 package com.exozet.ricohtheta.app
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
@@ -14,6 +15,7 @@ import com.exozet.ricohtheta.cameras.ThetaS
 import com.exozet.ricohtheta.cameras.ThetaV
 import com.exozet.sequentialimageplayer.parseAssetFile
 import com.exozet.threehundredsixty.player.ThreeHundredSixtyPlayer
+import com.tbruyelle.rxpermissions2.RxPermissions
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -24,7 +26,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        initFreedomPlayer(parseAssetFile("interior_example.jpg"))
+        RxPermissions(this)
+                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe({ granted ->
+                    if (granted) {
+                        initFreedomPlayer(parseAssetFile("interior_example.jpg"))
+                    } else {
+                        // Oups permission denied
+                    }
+                })
+
         // forceConnectToWifi()
     }
 
