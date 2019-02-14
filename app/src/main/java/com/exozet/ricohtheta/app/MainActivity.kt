@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        RxPermissions(this)
+       /* RxPermissions(this)
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe({ granted ->
                     if (granted) {
@@ -34,55 +34,31 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         // Oups permission denied
                     }
-                })
+                })*/
 
-        // forceConnectToWifi()
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
+            Theta.createWirelessConnection(this)
+        }
     }
 
     override fun onResume() {
         super.onResume()
 
+        Theta.onResume()
+
         with(Theta) {
             addCamera(ThetaS)
             addCamera(ThetaV)
 
-            val camera = findConnectedCamera()
-
+            findConnectedCamera()
             startLiveView(jpegView)
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun forceConnectToWifi() {
-        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val info = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
+    override fun onStop() {
+        super.onStop()
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            if (info != null && info.isAvailable) {
-                val builder = NetworkRequest.Builder()
-                builder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                val requestedNetwork = builder.build()
-
-                val callback = object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        super.onAvailable(network)
-
-                        ConnectivityManager.setProcessDefaultNetwork(network)
-                        invalidateOptionsMenu()
-                    }
-
-                    override fun onLost(network: Network) {
-                        super.onLost(network)
-
-                        invalidateOptionsMenu()
-                    }
-                }
-
-                cm.registerNetworkCallback(requestedNetwork, callback)
-            }
-        } else {
-            invalidateOptionsMenu()
-        }
+        Theta.onStop()
     }
 
     fun initFreedomPlayer(threeHundredSixtyUri: Uri) {

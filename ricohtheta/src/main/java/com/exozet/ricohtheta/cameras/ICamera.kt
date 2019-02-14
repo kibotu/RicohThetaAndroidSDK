@@ -14,6 +14,5 @@ interface ICamera{
     }
 
     fun connect(ipAddress : String) : HttpConnector
-    fun startLiveView(view: MJpegView): Observable<MJpegInputStream>
     val versionName: VersionNames
 }

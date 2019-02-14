@@ -1,33 +1,64 @@
 package com.exozet.ricohtheta
 
-import android.annotation.SuppressLint
-import android.net.Uri
+import android.app.Activity
+import android.content.Context
+import android.net.*
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.exozet.ricohtheta.cameras.ICamera
 import com.exozet.ricohtheta.cameras.ThetaS
 import com.exozet.ricohtheta.internal.network.HttpConnector
 import com.exozet.ricohtheta.internal.view.MJpegInputStream
 import com.exozet.ricohtheta.internal.view.MJpegView
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
-import java.io.InputStream
+
 
 object Theta {
 
+
     private val cameras = ArrayList<ICamera>()
-
-    private val MAX_RETRY_COUNTS = 20
     private val TAG = Theta::class.java.simpleName
-
     private var currentCamera : ICamera? = null
 
     @JvmStatic
     fun addCamera(camera : ICamera){
         cameras.add(camera)
     }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    fun createWirelessConnection(activity : Activity)
+    {
+        val cm = activity.application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val request = NetworkRequest.Builder()
+        request.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+
+        cm.registerNetworkCallback(request.build(), object : ConnectivityManager.NetworkCallback(){
+            override fun onAvailable(network: Network?) {
+                super.onAvailable(network)
+                when{
+                    Build.VERSION.SDK_INT >= 23 -> {
+                        cm?.bindProcessToNetwork(network)
+                    }
+                    // 21..22 = Lollipop
+                    Build.VERSION.SDK_INT in 21..22 -> {
+                        ConnectivityManager.setProcessDefaultNetwork(network)
+                    }
+                }
+            }
+        })
+    }
+
+    fun onResume(){
+    }
+
+    fun onStop(){
+    }
+
 
     fun findConnectedCamera(){
         cameras.forEach{
@@ -36,13 +67,6 @@ object Theta {
 
         //TODO
         currentCamera = ThetaS
-    }
-
-    fun connect(ip4Address: String){
-
-        currentCamera?.let {
-            it.connect(ip4Address)
-        }
     }
 
     fun disconnect(connector: HttpConnector){
@@ -89,7 +113,6 @@ object Theta {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe{
                     view.setSource(it)
-                    //view.play()
                 }
     }
     fun stopLiveView() {}

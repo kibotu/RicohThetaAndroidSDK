@@ -8,10 +8,6 @@ import io.reactivex.Observable
 
 
 object ThetaS : ICamera{
-    override fun startLiveView(view: MJpegView): Observable<MJpegInputStream> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
 
     override fun connect(ip4Address: String) = Http2Connector(ip4Address)
 
