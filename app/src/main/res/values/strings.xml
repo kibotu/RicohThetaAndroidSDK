@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ricoh-theta-sample-for-androidv2</string>
+    <string name="app_name">RicoTheta Demo</string>
     <string name="theta_ip_address">192.168.1.1</string>
     <string name="label_btn_shoot">shoot</string>
     <string name="text_camera_notconnected">Not connected</string>
@@ -19,7 +19,8 @@
     <string name="image_size_2048x1024">2048 x 1024</string>
     <string name="image_size_5376x2688">5376 x 2688</string>
 
-    <string name ="v20">v2.0</string>
-    <string name ="v21">v2.1</string>
+    <string name="v20">v2.0</string>
+    <string name="v21">v2.1</string>
 
+    <string name="leak_canary_display_activity_label">RicoTheta Leaks</string>
 </resources>
