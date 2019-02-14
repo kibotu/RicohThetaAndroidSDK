@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId "com.exozet.ricohthetasampleapp"
-        minSdkVersion minSdkVer
+        minSdkVersion 16
         targetSdkVersion targetSdkVer
         versionCode isCi ? commitCount() : VERSION_CODE
         versionName isCi ? simpleReleaseVersionName() : VERSION_NAME
@@ -146,6 +146,8 @@ dependencies {
     debugImplementation libs.leakcanaryDebug
     debugImplementation libs.leakcanaryDebugSupportFragments
     releaseImplementation libs.leakcanaryRelease
+
+    implementation libs.freedomPlayer
 }
 
 configurations.all {
