@@ -10,6 +10,7 @@ ext {
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
@@ -147,11 +148,13 @@ dependencies {
     debugImplementation libs.leakcanaryDebugSupportFragments
     releaseImplementation libs.leakcanaryRelease
 
-    implementation libs.freedomPlayer
+    implementation libs.threeHundertSixtyPlayer
     implementation libs.rxpermissions
     implementation libs.rx2java
     implementation libs.rx2Android
     implementation libs.rx2Kotlin
+    implementation libs.glide
+    kapt libs.glideAnnotationsProcessor
 }
 
 configurations.all {
