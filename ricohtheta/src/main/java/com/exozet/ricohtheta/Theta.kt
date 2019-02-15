@@ -9,9 +9,15 @@ import androidx.annotation.RequiresApi
 import com.exozet.ricohtheta.cameras.ICamera
 import com.exozet.ricohtheta.cameras.ThetaS
 import com.exozet.ricohtheta.internal.network.HttpConnector
+import com.exozet.ricohtheta.internal.network.HttpEventListener
 import com.exozet.ricohtheta.internal.view.MJpegInputStream
 import com.exozet.ricohtheta.internal.view.MJpegView
+import io.reactivex.Completable
+import io.reactivex.CompletableEmitter
 import io.reactivex.Observable
+import io.reactivex.Observable.fromCallable
+import io.reactivex.Single
+import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
@@ -23,6 +29,7 @@ object Theta {
     private val cameras = ArrayList<ICamera>()
     private val TAG = Theta::class.java.simpleName
     private var currentCamera : ICamera? = null
+    private var ipAddress : String = ""
 
     @JvmStatic
     fun addCamera(camera : ICamera){
@@ -60,7 +67,10 @@ object Theta {
     }
 
 
-    fun findConnectedCamera(){
+    fun findConnectedCamera(ipAddress : String){
+
+        this.ipAddress = ipAddress
+
         cameras.forEach{
             //it.connect()
         }
@@ -82,14 +92,34 @@ object Theta {
             return true
         }
 
-    fun takePicture(): Uri {
-        return Uri.EMPTY
+    fun takePicture() : Single<String> {
+        currentCamera?.let{
+            val camera = it.connect(ipAddress)
+
+            return Single.create { emitter->
+                camera.takePicture(object : HttpEventListener{
+                    override fun onCheckStatus(newStatus: Boolean) {}
+
+                    override fun onObjectChanged(latestCapturedFileId: String?) {
+                        emitter.onSuccess(latestCapturedFileId!!)
+                    }
+
+                    override fun onCompleted() {}
+
+                    override fun onError(errorMessage: String?) {
+                        emitter.onError(Throwable(errorMessage))
+                    }
+                })
+            }
+        }
+
+        return Single.error(Throwable("currentCamera does not exist"))
     }//(Observable machen -> Stream + delete image )
     //fun getThumbnail() : Uri{ return Uri.EMPTY}
 
     open fun startLiveView(view: MJpegView) {
 
-        Observable.fromCallable {
+        fromCallable {
             currentCamera?.let {
 
                 var success = false
@@ -97,7 +127,7 @@ object Theta {
 
                 while (!success){
                     try {
-                        val camera = it.connect("192.168.1.1")
+                        val camera = it.connect(ipAddress)
                         val stream = camera.livePreview
                         mjis = MJpegInputStream(stream)
                         success = true

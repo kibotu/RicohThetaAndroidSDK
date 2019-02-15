@@ -12,4 +12,6 @@ public interface HttpConnector {
     }
 
     public InputStream getLivePreview() throws IOException, JSONException;
+
+    public ShootResult takePicture(HttpEventListener listener);
 }

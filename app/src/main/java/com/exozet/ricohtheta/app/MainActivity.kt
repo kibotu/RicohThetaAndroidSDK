@@ -7,6 +7,7 @@ import android.content.Context
 import android.net.*
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.exozet.freedomplayer.FreedomPlayerActivity
 import com.exozet.freedomplayer.Parameter
@@ -16,41 +17,54 @@ import com.exozet.ricohtheta.cameras.ThetaV
 import com.exozet.sequentialimageplayer.parseAssetFile
 import com.exozet.threehundredsixty.player.ThreeHundredSixtyPlayer
 import com.tbruyelle.rxpermissions2.RxPermissions
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
+
+    private val TAG = Theta::class.java.simpleName
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-       /* RxPermissions(this)
-                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe({ granted ->
-                    if (granted) {
-                        initFreedomPlayer(parseAssetFile("interior_example.jpg"))
-                    } else {
-                        // Oups permission denied
-                    }
-                })*/
-
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
             Theta.createWirelessConnection(this)
         }
+
+        takePhoto.setOnClickListener {
+            Theta.takePicture()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
+                    .subscribe{result -> Log.i(TAG,"snapshot taken $result")}
+        }
+    }
+
+    private fun show360Player(filename: String) {
+        RxPermissions(this)
+                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe { granted ->
+                    if (granted) {
+                        initFreedomPlayer(parseAssetFile(filename))
+                    } else {
+                        // Oups permission denied
+                    }
+                }
     }
 
     override fun onResume() {
         super.onResume()
-
         Theta.onResume()
 
         with(Theta) {
             addCamera(ThetaS)
             addCamera(ThetaV)
 
-            findConnectedCamera()
+            findConnectedCamera("192.168.1.1")
             startLiveView(jpegView)
         }
     }
