@@ -117,6 +117,9 @@ dependencies {
     implementation libs.rx2java
     implementation libs.rx2Android
     implementation libs.rx2Kotlin
+
+    implementation libs.constraintLayout
+    implementation libs.threeHundertSixtyPlayer
 }
 
 // region dexcount

@@ -1,7 +1,9 @@
 package com.exozet.ricohtheta
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.*
 import android.os.Build
 import android.util.Log
@@ -12,15 +14,14 @@ import com.exozet.ricohtheta.internal.network.HttpConnector
 import com.exozet.ricohtheta.internal.network.HttpEventListener
 import com.exozet.ricohtheta.internal.view.MJpegInputStream
 import com.exozet.ricohtheta.internal.view.MJpegView
-import io.reactivex.Completable
-import io.reactivex.CompletableEmitter
+import com.exozet.threehundredsixtyplayer.ThreeHundredSixtyPlayer
 import io.reactivex.Observable
 import io.reactivex.Observable.fromCallable
 import io.reactivex.Single
-import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 
 object Theta {
@@ -117,7 +118,7 @@ object Theta {
     }//(Observable machen -> Stream + delete image )
     //fun getThumbnail() : Uri{ return Uri.EMPTY}
 
-    open fun startLiveView(view: MJpegView) {
+    fun startLiveView(view: MJpegView) {
 
         fromCallable {
             currentCamera?.let {
@@ -140,10 +141,63 @@ object Theta {
                 mjis
             }
         }.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe{
-                    view.setSource(it)
-                }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe{
+                view.setSource(it)
+            }
     }
+
+    fun startLiveView(view: ThreeHundredSixtyPlayer){
+
+        fromCallable {
+            currentCamera?.let {
+
+                var success = false
+                var mjis : MJpegInputStream? = null
+
+                while (!success){
+                    try {
+                        val camera = it.connect(ipAddress)
+                        val stream = camera.livePreview
+                        mjis = MJpegInputStream(stream)
+                        success = true
+                    }catch (e: IOException){
+                        Thread.sleep(500)
+                        Log.e(TAG, e.toString())
+                        success = false
+                    }
+                }
+                mjis
+            }
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
+            .subscribe{runUpdateBitmapLoop(view, it)
+           }
+    }
+
+    private fun runUpdateBitmapLoop(view: ThreeHundredSixtyPlayer, stream: MJpegInputStream?) {
+
+        var bitmap: Bitmap? = null
+
+        fromCallable {
+            try{
+                bitmap = stream?.readMJpegFrame()
+                view.bitmap = bitmap
+                //bitmap.recycle()
+            }
+            catch (e : Exception){
+                Log.e(TAG, e.toString())
+            }
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
+            .repeatWhen{ o -> o.delay(100, TimeUnit.MILLISECONDS) }
+            .subscribe{
+               // bitmap?.recycle()
+                Log.i(TAG,"painted ${it.toString()}")
+            }
+    }
+
     fun stopLiveView() {}
 }

@@ -1,12 +1,17 @@
 package com.exozet.ricohtheta.app
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.exozet.ricohtheta.Theta
+import com.exozet.ricohtheta.cameras.ThetaS
+import com.exozet.ricohtheta.cameras.ThetaV
 import com.exozet.threehundredsixtyplayer.loadImage
 import com.exozet.threehundredsixtyplayer.parseAssetFile
 import kotlinx.android.synthetic.main.activity_bitmap.*
+import kotlinx.android.synthetic.main.activity_main.*
 
 class BitmapActivity : AppCompatActivity() {
 
@@ -44,6 +49,20 @@ class BitmapActivity : AppCompatActivity() {
             Log.v("ThreeHundredSixty", "current=$current")
 
             threeHundredSixtyView.bitmap = current2
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        Theta.onResume()
+
+        with(Theta) {
+            addCamera(ThetaS)
+            addCamera(ThetaV)
+
+            findConnectedCamera("192.168.1.1")
+            startLiveView(threeHundredSixtyView)
         }
     }
 }
