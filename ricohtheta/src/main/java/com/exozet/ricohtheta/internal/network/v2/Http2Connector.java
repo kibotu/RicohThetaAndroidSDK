@@ -44,7 +44,7 @@ public class Http2Connector implements HttpConnector {
      *
      * @return Session ID (null is returned if the connection fails)
      */
-    private String connect() {
+    public String connect() {
         HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
         JSONObject input = new JSONObject();
         String responseData;

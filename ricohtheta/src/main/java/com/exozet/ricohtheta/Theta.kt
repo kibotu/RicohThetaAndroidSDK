@@ -1,36 +1,44 @@
 package com.exozet.ricohtheta
 
 import android.app.Activity
-import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.net.*
+import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.exozet.ricohtheta.cameras.ICamera
-import com.exozet.ricohtheta.cameras.ThetaS
 import com.exozet.ricohtheta.internal.network.HttpConnector
+import com.exozet.ricohtheta.internal.network.HttpDownloadListener
 import com.exozet.ricohtheta.internal.network.HttpEventListener
+import com.exozet.ricohtheta.internal.network.ImageData
 import com.exozet.ricohtheta.internal.view.MJpegInputStream
 import com.exozet.ricohtheta.internal.view.MJpegView
 import com.exozet.threehundredsixtyplayer.ThreeHundredSixtyPlayer
 import io.reactivex.Observable
+import io.reactivex.Observable.error
 import io.reactivex.Observable.fromCallable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import java.io.IOException
+import java.io.*
 import java.util.concurrent.TimeUnit
 
 
 object Theta {
 
-
     private val cameras = ArrayList<ICamera>()
     private val TAG = Theta::class.java.simpleName
     private var currentCamera : ICamera? = null
     private var ipAddress : String = ""
+    private var repaintObserver : Disposable? = null
 
     @JvmStatic
     fun addCamera(camera : ICamera){
@@ -52,8 +60,7 @@ object Theta {
                     Build.VERSION.SDK_INT >= 23 -> {
                         cm?.bindProcessToNetwork(network)
                     }
-                    // 21..22 = Lollipop
-                    Build.VERSION.SDK_INT in 21..22 -> {
+                    else -> {
                         ConnectivityManager.setProcessDefaultNetwork(network)
                     }
                 }
@@ -65,19 +72,39 @@ object Theta {
     }
 
     fun onStop(){
+
+    }
+
+    fun onPause(){
+
     }
 
 
-    fun findConnectedCamera(ipAddress : String){
-
+    fun findConnectedCamera(ipAddress : String) : Observable<ICamera>{
         this.ipAddress = ipAddress
+        this.currentCamera = null
 
-        cameras.forEach{
-            //it.connect()
+        return Observable.create {emitter ->
+            cameras.forEach{
+                try {
+                    val model = it.connection(ipAddress).deviceInfo.model
+
+                    if(model.isNotEmpty() && model.compareTo(it.deviceInfoName) == 0){
+                        currentCamera = it
+                        emitter.onNext(it)
+                    }
+                }catch (t : Throwable){
+                    //don't do anything, connection was not possible - that is OK
+                }
+            }
+
+            if(currentCamera != null){
+                emitter.onComplete()
+            }
+            else{
+                emitter.onError(HttpConnector.CameraNotFoundException())
+            }
         }
-
-        //TODO
-        currentCamera = ThetaS
     }
 
     fun disconnect(connector: HttpConnector){
@@ -93,19 +120,22 @@ object Theta {
             return true
         }
 
-    fun takePicture() : Single<String> {
+    fun takePicture() : Observable<String> {
         currentCamera?.let{
-            val camera = it.connect(ipAddress)
+            stopLiveView()
+            val camera = it.connection(ipAddress)
 
-            return Single.create { emitter->
+            return Observable.create { emitter->
                 camera.takePicture(object : HttpEventListener{
                     override fun onCheckStatus(newStatus: Boolean) {}
 
                     override fun onObjectChanged(latestCapturedFileId: String?) {
-                        emitter.onSuccess(latestCapturedFileId!!)
+                        emitter.onNext(latestCapturedFileId!!)
                     }
 
-                    override fun onCompleted() {}
+                    override fun onCompleted() {
+                        emitter.onComplete()
+                    }
 
                     override fun onError(errorMessage: String?) {
                         emitter.onError(Throwable(errorMessage))
@@ -114,77 +144,64 @@ object Theta {
             }
         }
 
-        return Single.error(Throwable("currentCamera does not exist"))
-    }//(Observable machen -> Stream + delete image )
+        return error(HttpConnector.CameraNotFoundException())
+    }
     //fun getThumbnail() : Uri{ return Uri.EMPTY}
 
     fun startLiveView(view: MJpegView) {
-
         fromCallable {
             currentCamera?.let {
-
-                var success = false
-                var mjis : MJpegInputStream? = null
-
-                while (!success){
-                    try {
-                        val camera = it.connect(ipAddress)
-                        val stream = camera.livePreview
-                        mjis = MJpegInputStream(stream)
-                        success = true
-                    }catch (e: IOException){
-                        Thread.sleep(500)
-                        Log.e(TAG, e.toString())
-                        success = false
-                    }
+                Log.i(TAG, "startLiveView")
+                getJPEGStream(it)
+        }}.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
+                .retryWhen{ o -> o.delay(500, TimeUnit.MILLISECONDS) }
+                .subscribe{
+                    Log.i(TAG, "startLiveView subscribed")
+                    view.setSource(it)
                 }
-                mjis
-            }
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe{
-                view.setSource(it)
-            }
     }
 
     fun startLiveView(view: ThreeHundredSixtyPlayer){
-
         fromCallable {
             currentCamera?.let {
-
-                var success = false
-                var mjis : MJpegInputStream? = null
-
-                while (!success){
-                    try {
-                        val camera = it.connect(ipAddress)
-                        val stream = camera.livePreview
-                        mjis = MJpegInputStream(stream)
-                        success = true
-                    }catch (e: IOException){
-                        Thread.sleep(500)
-                        Log.e(TAG, e.toString())
-                        success = false
-                    }
+                Log.i(TAG, "startLiveView")
+                getJPEGStream(it)
+            }}.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
+                .retryWhen{ o -> o.delay(500, TimeUnit.MILLISECONDS) }
+                .subscribe{
+                    Log.i(TAG, "startLiveView subscribed")
+                    observeBitmapUpdate(view, it)
                 }
-                mjis
-            }
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
-            .subscribe{runUpdateBitmapLoop(view, it)
-           }
     }
 
-    private fun runUpdateBitmapLoop(view: ThreeHundredSixtyPlayer, stream: MJpegInputStream?) {
+    private fun getJPEGStream(camera: ICamera): MJpegInputStream? {
+        var jpegStream: MJpegInputStream? = null
 
+        try {
+            val camera = camera.connection(ipAddress)
+            val stream = camera.livePreview
+            jpegStream = MJpegInputStream(stream)
+        } catch (e: Exception) {
+            Log.e(TAG, e.toString())
+        }
+
+        return jpegStream
+    }
+
+    private fun observeBitmapUpdate(view: ThreeHundredSixtyPlayer, stream: MJpegInputStream?) {
         var bitmap: Bitmap? = null
 
-        fromCallable {
+        Log.i(TAG, "observeBitmapUpdate()")
+
+        repaintObserver = fromCallable {
             try{
+                bitmap?.recycle()
                 bitmap = stream?.readMJpegFrame()
                 view.bitmap = bitmap
-                //bitmap.recycle()
             }
             catch (e : Exception){
                 Log.e(TAG, e.toString())
@@ -194,10 +211,66 @@ object Theta {
             .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
             .repeatWhen{ o -> o.delay(100, TimeUnit.MILLISECONDS) }
             .subscribe{
-               // bitmap?.recycle()
                 Log.i(TAG,"painted ${it.toString()}")
             }
     }
 
-    fun stopLiveView() {}
+    fun stopLiveView() {
+        repaintObserver?.dispose()
+    }
+
+    fun transfer(fileId : String) : Single<ImageData> {
+        currentCamera?.let{
+            stopLiveView()
+            val camera = it.connection(ipAddress)
+
+            var totalFileSize = 0L
+            var fileSize = 0L
+
+            return Single.create { emitter->
+                val imageData = camera.getImage(fileId, object : HttpDownloadListener{
+                    override fun onTotalSize(totalSize: Long) {
+                        totalFileSize = totalSize
+                    }
+
+                    override fun onDataReceived(size: Int) {
+                        fileSize += size
+                    }
+                })
+
+                emitter.onSuccess(imageData)
+            }
+        }
+
+        return Single.error(HttpConnector.CameraNotFoundException())
+    }
+
+    fun saveExternal(context: Context, imageData: ImageData, folderName : String, fileName : String) {
+        val path = Environment.getExternalStorageDirectory().toString()
+        var fOutputStream: OutputStream? = null
+        val file = File("$path/$folderName/", fileName)
+
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+            file.createNewFile()
+        }
+
+        try {
+            fOutputStream = FileOutputStream(file)
+
+            val bmp = BitmapFactory.decodeByteArray(imageData.rawData, 0, imageData.rawData.count())
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fOutputStream)
+
+            fOutputStream!!.flush()
+
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+            return
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return
+        } finally {
+            fOutputStream!!.close()
+        }
+    }
 }
