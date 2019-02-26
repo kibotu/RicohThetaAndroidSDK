@@ -80,6 +80,7 @@ class BitmapActivity : AppCompatActivity() {
                         Theta.startLiveView(threeHundredSixtyView)
                         transfer.isEnabled = true
                         snapshot.isEnabled = true
+                        delete_button.isEnabled = true
                     }
         }
 
@@ -88,6 +89,7 @@ class BitmapActivity : AppCompatActivity() {
             Log.i(TAG, "start file transfer of $latestFileId ...")
             transfer.isEnabled = false
             snapshot.isEnabled = false
+            delete_button.isEnabled = false
 
             latestFileId?.let {id ->
                 Theta.transfer(id)
@@ -104,10 +106,32 @@ class BitmapActivity : AppCompatActivity() {
                             Log.i(TAG, "file saved $filename with result $result")
                             transfer.isEnabled = true
                             snapshot.isEnabled = true
+                            delete_button.isEnabled = true
                         }
                         .subscribe()
             }
         }
+
+        delete_button.isEnabled = false
+        delete_button.setOnClickListener {
+            delete_button.isEnabled = false
+
+            latestFileId?.let { id ->
+                Theta.deleteOnCamera(id)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSuccess {result ->
+                        if(result){
+                            val filename = id.substringAfter("/")
+
+                            Theta.deleteExternal(this, "/exozet Ricoh sdk/", filename)
+
+                        }
+                    }
+                    .subscribe()
+            }
+        }
+
     }
 
     override fun onPause() {
@@ -129,9 +153,10 @@ class BitmapActivity : AppCompatActivity() {
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .retryWhen { o -> o.delay(500, TimeUnit.MILLISECONDS)}
-                    .subscribe{
+                    .doOnSuccess{
                         startLiveView(threeHundredSixtyView)
-                    }
+                    }.subscribe()
+
         }
     }
 }

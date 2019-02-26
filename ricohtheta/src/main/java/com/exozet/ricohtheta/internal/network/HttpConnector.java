@@ -23,4 +23,6 @@ public interface HttpConnector {
     public DeviceInfo getDeviceInfo();
 
     public String connect();
+
+    public void deleteFile(String deletedFileId, HttpEventListener listener);
 }

@@ -9,7 +9,7 @@ buildscript {
 
     }
     dependencies {
-        classpath plugin.gradleBuildToolsCanary
+        classpath 'com.android.tools.build:gradle:3.5.0-alpha05'
         classpath plugin.kotlinGradle
         classpath plugin.kotlinApt
         classpath plugin.dexcountGradle

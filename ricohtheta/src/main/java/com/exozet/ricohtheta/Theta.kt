@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.util.TimeUtils
 import androidx.annotation.RequiresApi
 import com.exozet.ricohtheta.cameras.ICamera
 import com.exozet.ricohtheta.internal.network.HttpConnector
@@ -29,6 +30,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.io.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -80,18 +82,17 @@ object Theta {
     }
 
 
-    fun findConnectedCamera(ipAddress : String) : Observable<ICamera>{
+    fun findConnectedCamera(ipAddress : String) : Single<ICamera>{
         this.ipAddress = ipAddress
         this.currentCamera = null
 
-        return Observable.create {emitter ->
+        return Single.create {emitter ->
             cameras.forEach{
                 try {
                     val model = it.connection(ipAddress).deviceInfo.model
 
                     if(model.isNotEmpty() && model.compareTo(it.deviceInfoName) == 0){
                         currentCamera = it
-                        emitter.onNext(it)
                     }
                 }catch (t : Throwable){
                     //don't do anything, connection was not possible - that is OK
@@ -99,7 +100,7 @@ object Theta {
             }
 
             if(currentCamera != null){
-                emitter.onComplete()
+                emitter.onSuccess(currentCamera!!)
             }
             else{
                 emitter.onError(HttpConnector.CameraNotFoundException())
@@ -120,21 +121,26 @@ object Theta {
             return true
         }
 
-    fun takePicture() : Observable<String> {
+    fun takePicture() : Single<String> {
         currentCamera?.let{
             stopLiveView()
             val camera = it.connection(ipAddress)
 
-            return Observable.create { emitter->
+            var captureId = ""
+
+            return Single.create { emitter->
                 camera.takePicture(object : HttpEventListener{
                     override fun onCheckStatus(newStatus: Boolean) {}
 
                     override fun onObjectChanged(latestCapturedFileId: String?) {
-                        emitter.onNext(latestCapturedFileId!!)
+
+                        latestCapturedFileId?.let {id->
+                            captureId = id
+                        }
                     }
 
                     override fun onCompleted() {
-                        emitter.onComplete()
+                        emitter.onSuccess(captureId)
                     }
 
                     override fun onError(errorMessage: String?) {
@@ -144,7 +150,7 @@ object Theta {
             }
         }
 
-        return error(HttpConnector.CameraNotFoundException())
+        return Single.error(HttpConnector.CameraNotFoundException())
     }
     //fun getThumbnail() : Uri{ return Uri.EMPTY}
 
@@ -209,9 +215,9 @@ object Theta {
         }.subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
-            .repeatWhen{ o -> o.delay(100, TimeUnit.MILLISECONDS) }
+            .repeatWhen{ o -> o.delay(40, TimeUnit.MILLISECONDS) }
             .subscribe{
-                Log.i(TAG,"painted ${it.toString()}")
+                Log.i(TAG,"painted ${Calendar.getInstance().timeInMillis} ${it.toString()}")
             }
     }
 
@@ -245,7 +251,7 @@ object Theta {
         return Single.error(HttpConnector.CameraNotFoundException())
     }
 
-    fun saveExternal(context: Context, imageData: ImageData, folderName : String, fileName : String) {
+    fun saveExternal(context: Context, imageData: ImageData, folderName : String, fileName : String) : File {
         val path = Environment.getExternalStorageDirectory().toString()
         var fOutputStream: OutputStream? = null
         val file = File("$path/$folderName/", fileName)
@@ -262,15 +268,51 @@ object Theta {
             bmp.compress(Bitmap.CompressFormat.JPEG, 100, fOutputStream)
 
             fOutputStream!!.flush()
-
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
-            return
         } catch (e: IOException) {
             e.printStackTrace()
-            return
         } finally {
             fOutputStream!!.close()
         }
+
+        return file
+    }
+
+    fun deleteExternal(context: Context, folderName : String, fileName : String) : File {
+        val path = Environment.getExternalStorageDirectory().toString()
+        val file = File("$path/$folderName/", fileName)
+
+        if (file.exists()) {
+            file.delete()
+        }
+
+        return file
+    }
+
+    fun deleteOnCamera(filename : String) : Single<Boolean>{
+        currentCamera?.let{
+            val camera = it.connection(ipAddress)
+
+            return Single.create { emitter->
+                camera.deleteFile(filename, object : HttpEventListener{
+                    override fun onCheckStatus(newStatus: Boolean) {
+                    }
+
+                    override fun onObjectChanged(latestCapturedFileId: String?) {
+                    }
+
+                    override fun onCompleted() {
+                        emitter.onSuccess(true)
+                    }
+
+                    override fun onError(errorMessage: String?) {
+                        emitter.onError(Throwable(errorMessage))
+                    }
+                })
+            }
+        }
+
+        return Single.error(HttpConnector.CameraNotFoundException())
     }
 }
