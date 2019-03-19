@@ -608,7 +608,7 @@ public class Http21Connector implements HttpConnector {
 
         try {
             // send HTTP POST
-            input.put("name", "camera._getLivePreview");
+            input.put("name", "camera.getLivePreview");
             JSONObject parameters = new JSONObject();
             parameters.put("sessionId", mSessionId);
             input.put("parameters", parameters);

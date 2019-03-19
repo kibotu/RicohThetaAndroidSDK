@@ -93,7 +93,7 @@ object Theta {
 
                     if(model.isNotEmpty() && model.compareTo(it.deviceInfoName) == 0){
                         currentCamera = it
-                    }
+                }
                 }catch (t : Throwable){
                     //don't do anything, connection was not possible - that is OK
                 }
