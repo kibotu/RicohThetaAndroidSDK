@@ -11,9 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import com.exozet.ricohtheta.Theta
 import com.exozet.ricohtheta.cameras.ThetaS
 import com.exozet.ricohtheta.cameras.ThetaV
+import com.exozet.ricohtheta.internal.network.ImageData
 import com.exozet.threehundredsixtyplayer.loadImage
 import com.exozet.threehundredsixtyplayer.parseAssetFile
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.addTo
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_bitmap.*
 import java.io.File
@@ -38,6 +40,8 @@ class BitmapActivity : AppCompatActivity() {
         var image2: Bitmap? = null
         var current2: Bitmap?
 
+        lateinit var savedPhoto : Bitmap
+
         sample1.parseAssetFile().loadImage(this) {
             image1 = it
             threeHundredSixtyView.bitmap = it
@@ -50,6 +54,12 @@ class BitmapActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Theta.createWirelessConnection(this)
         }
+
+        show.setOnClickListener {
+            threeHundredSixtyView.bitmap = savedPhoto
+        }
+
+        show.isEnabled = false
 
         next.setOnClickListener {
 
@@ -101,12 +111,18 @@ class BitmapActivity : AppCompatActivity() {
                             Log.i(TAG, "file transfered $result")
                             val filename = id.substringAfter("/")
 
-                            Theta.saveExternal(this, result, "/exozet Ricoh sdk/", filename)
+                            //todo: use rx
+                            Thread{
+                                val photoFile = Theta.saveExternal(this , result, "/exozet Ricoh sdk/", filename)
+                                val filePath = photoFile.path
+                                 savedPhoto = BitmapFactory.decodeFile(filePath)
+                            }.start()
 
                             Log.i(TAG, "file saved $filename with result $result")
                             transfer.isEnabled = true
                             snapshot.isEnabled = true
                             delete_button.isEnabled = true
+                            show.isEnabled = true
                         }
                         .subscribe()
             }
