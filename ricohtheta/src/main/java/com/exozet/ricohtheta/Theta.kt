@@ -45,6 +45,7 @@ object Theta {
     @JvmStatic
     fun addCamera(camera : ICamera){
         cameras.add(camera)
+
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -152,7 +153,7 @@ object Theta {
 
         return Single.error(HttpConnector.CameraNotFoundException())
     }
-    //fun getThumbnail() : Uri{ return Uri.EMPTY}
+
 
     fun startLiveView(view: MJpegView) {
         fromCallable {
@@ -250,6 +251,22 @@ object Theta {
 
         return Single.error(HttpConnector.CameraNotFoundException())
     }
+
+
+    fun getThumbnail(fileId : String): Single<Bitmap>{
+        currentCamera?.let{
+            val camera = it.connection(ipAddress)
+
+            return Single.create { emitter->
+                val imageData = camera.getThumb(fileId)
+
+                emitter.onSuccess(imageData)
+            }
+        }
+
+        return Single.error(HttpConnector.CameraNotFoundException())
+    }
+
 
     fun saveExternal(context: Context, imageData: ImageData, folderName : String, fileName : String) : File {
         val path = Environment.getExternalStorageDirectory().toString()

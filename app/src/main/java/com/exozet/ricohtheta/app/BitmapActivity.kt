@@ -148,6 +148,18 @@ class BitmapActivity : AppCompatActivity() {
             }
         }
 
+        thumbnail.setOnClickListener {
+            latestFileId?.let { id ->
+                Theta.getThumbnail(id)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSuccess { result->
+                        thumb.setImageBitmap(result)
+                    }
+                    .subscribe()
+            }
+        }
+
     }
 
     override fun onPause() {

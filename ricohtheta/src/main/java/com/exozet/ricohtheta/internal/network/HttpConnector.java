@@ -1,5 +1,6 @@
 package com.exozet.ricohtheta.internal.network;
 
+import android.graphics.Bitmap;
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -18,7 +19,10 @@ public interface HttpConnector {
     public InputStream getLivePreview() throws IOException, JSONException;
 
     public ShootResult takePicture(HttpEventListener listener);
+
     public ImageData getImage(String fileId, HttpDownloadListener listener);
+
+    public Bitmap getThumb(String fileId);
 
     public DeviceInfo getDeviceInfo();
 
