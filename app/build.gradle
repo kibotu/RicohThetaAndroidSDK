@@ -144,11 +144,15 @@ dependencies {
 //    implementation 'com.exozet:ricohtheta:1.0.0'
     implementation project(":ricohtheta")
 
+    implementation libs.md360PlayerBeta
+
     debugImplementation libs.leakcanaryDebug
     debugImplementation libs.leakcanaryDebugSupportFragments
     releaseImplementation libs.leakcanaryRelease
 
-    implementation libs.threeHundertSixtyPlayer
+    implementation (libs.threeHundertSixtyPlayer) {
+        exclude module: 'MD360Player4Android'
+    }
     implementation libs.rxpermissions
     implementation libs.rx2java
     implementation libs.rx2Android

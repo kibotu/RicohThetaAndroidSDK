@@ -11,21 +11,25 @@ class App : MultiDexApplication() {
 
         if (BuildConfig.DEBUG) {
 
-            StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder()
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
                     .detectCustomSlowCalls()
                     .detectNetwork()
                     .penaltyLog()
                     .penaltyDeath()
-                    .build())
+                    .build()
+            )
 
-            StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder()
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
                     .detectActivityLeaks()
                     .detectLeakedClosableObjects()
                     .detectLeakedRegistrationObjects()
                     .detectLeakedSqlLiteObjects()
                     .penaltyLog()
                     .penaltyDeath()
-                    .build())
+                    .build()
+            )
 
             if (LeakCanary.isInAnalyzerProcess(this)) {
                 // This process is dedicated to LeakCanary for heap analysis.

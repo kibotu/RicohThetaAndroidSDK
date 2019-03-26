@@ -119,7 +119,12 @@ dependencies {
     implementation libs.rx2Kotlin
 
     implementation libs.constraintLayout
-    implementation libs.threeHundertSixtyPlayer
+    implementation (libs.threeHundertSixtyPlayer) {
+        exclude module: 'MD360Player4Android'
+    }
+
+    implementation libs.md360PlayerBeta
+
 }
 
 // region dexcount

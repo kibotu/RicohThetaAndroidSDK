@@ -3,11 +3,7 @@ package com.exozet.ricohtheta.internal.view;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 /**

@@ -8,25 +8,25 @@ import java.io.InputStream;
 
 public interface HttpConnector {
 
-    public enum ShootResult {
+    enum ShootResult {
         SUCCESS, FAIL_CAMERA_DISCONNECTED, FAIL_STORE_FULL, FAIL_DEVICE_BUSY
     }
 
-    public class CameraNotFoundException extends Exception{
+    class CameraNotFoundException extends Exception {
 
     }
 
-    public InputStream getLivePreview() throws IOException, JSONException;
+    InputStream getLivePreview() throws IOException, JSONException;
 
-    public ShootResult takePicture(HttpEventListener listener);
+    ShootResult takePicture(HttpEventListener listener);
 
-    public ImageData getImage(String fileId, HttpDownloadListener listener);
+    ImageData getImage(String fileId, HttpDownloadListener listener);
 
-    public Bitmap getThumb(String fileId);
+    Bitmap getThumb(String fileId);
 
-    public DeviceInfo getDeviceInfo();
+    DeviceInfo getDeviceInfo();
 
-    public String connect();
+    String connect();
 
-    public void deleteFile(String deletedFileId, HttpEventListener listener);
+    void deleteFile(String deletedFileId, HttpEventListener listener);
 }

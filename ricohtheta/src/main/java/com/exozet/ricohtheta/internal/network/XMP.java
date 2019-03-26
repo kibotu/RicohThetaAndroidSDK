@@ -1,7 +1,6 @@
 package com.exozet.ricohtheta.internal.network;
 
 import android.util.Xml;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
