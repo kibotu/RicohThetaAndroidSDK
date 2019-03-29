@@ -67,6 +67,16 @@ class BitmapActivity : AppCompatActivity() {
             threeHundredSixtyView.bitmap = savedPhoto
         }
 
+        close_connection_button.setOnClickListener {
+            disconnect {
+                if (it) {
+                    Log.v(TAG, "session closed")
+                } else {
+                    Log.e(TAG, "session close fail")
+                }
+            }
+        }
+
         show.isEnabled = false
 
         next.setOnClickListener {
@@ -184,6 +194,18 @@ class BitmapActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 onComplete(true)
+            }, {
+                it.printStackTrace()
+                onComplete(false)
+            }).addTo(subscription)
+    }
+
+    private fun disconnect(onComplete: (Boolean) -> Unit) {
+        theta.disconnect()
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                onComplete(it)
             }, {
                 it.printStackTrace()
                 onComplete(false)

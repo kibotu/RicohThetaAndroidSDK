@@ -96,6 +96,65 @@ public class Http2Connector implements HttpConnector {
     }
 
     /**
+     * Disconnect to device
+     *
+     *
+     */
+    public Boolean disconnect() {
+
+        mSessionId = connect();
+        if (mSessionId == null) {
+            return false;
+        }
+
+
+        HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
+        JSONObject input = new JSONObject();
+        String responseData;
+        InputStream is = null;
+
+        try {
+            // send HTTP POST
+            input.put("name", "camera.closeSession");
+            JSONObject parameters = new JSONObject();
+            parameters.put("sessionId", mSessionId);
+            input.put("parameters", parameters);
+
+            OutputStream os = postConnection.getOutputStream();
+            os.write(input.toString().getBytes());
+            postConnection.connect();
+            os.flush();
+            os.close();
+
+            is = postConnection.getInputStream();
+            responseData = InputStreamToString(is);
+
+            // parse JSON data
+            JSONObject output = new JSONObject(responseData);
+            String status = output.getString("state");
+
+            if (status.equals("done")) {
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Acquire storage information of device
      *
      * @return Storage information

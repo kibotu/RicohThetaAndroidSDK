@@ -92,8 +92,15 @@ class Theta {
         }
     }
 
-    fun disconnect(connector: HttpConnector) {
-        camera?.disconnect()
+    fun disconnect(): Single<Boolean> {
+
+        return Single.create { emitter ->
+            if (camera?.disconnect()!!){
+            emitter.onSuccess(true)
+            }else{
+                emitter.onError(HttpConnector.CameraNotFoundException())
+            }
+        }
     }
 
     val isConnected: Boolean

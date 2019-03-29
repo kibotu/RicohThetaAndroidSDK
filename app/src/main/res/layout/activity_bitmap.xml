@@ -107,6 +107,20 @@
                 app:layout_constraintBottom_toTopOf="@+id/transfer"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
+
+            <Button
+                    android:id="@+id/close_connection_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginRight="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="Close"
+                    app:layout_constraintBottom_toTopOf="@+id/delete_button"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
         </com.exozet.threehundredsixtyplayer.ThreeHundredSixtyPlayer>
 
         <ImageView

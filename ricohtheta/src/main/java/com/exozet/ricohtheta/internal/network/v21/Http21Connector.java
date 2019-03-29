@@ -36,6 +36,11 @@ public class Http21Connector implements HttpConnector {
         mIpAddress = cameraIpAddress;
     }
 
+    // Don't need to implement to v2.1
+    @Override
+    public Boolean disconnect() {
+        return true;
+    }
 
     /**
      * Acquire storage information of device

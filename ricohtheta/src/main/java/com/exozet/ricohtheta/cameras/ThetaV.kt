@@ -16,7 +16,7 @@ class ThetaV : ICamera {
         return httpConnector!!
     }
 
-    override fun disconnect() {
-        // httpConnector?.disconnect()
+    override fun disconnect(): Boolean {
+        return httpConnector?.disconnect() ?: false
     }
 }

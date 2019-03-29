@@ -12,5 +12,5 @@ interface ICamera {
 
     fun connection(ip4Address: String): HttpConnector
 
-    fun disconnect()
+    fun disconnect() : Boolean
 }

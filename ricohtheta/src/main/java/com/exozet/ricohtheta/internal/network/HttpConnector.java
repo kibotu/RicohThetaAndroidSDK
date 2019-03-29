@@ -28,5 +28,7 @@ public interface HttpConnector {
 
     String connect();
 
+    Boolean disconnect();
+
     void deleteFile(String deletedFileId, HttpEventListener listener);
 }
