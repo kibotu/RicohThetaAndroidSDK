@@ -20,6 +20,7 @@ import com.exozet.ricohtheta.internal.network.ImageData
 import com.exozet.ricohtheta.internal.view.MJpegInputStream
 import com.exozet.ricohtheta.internal.view.MJpegView
 import com.exozet.threehundredsixtyplayer.ThreeHundredSixtyPlayer
+import io.reactivex.Observable
 import io.reactivex.Observable.fromCallable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -95,9 +96,9 @@ class Theta {
     fun disconnect(): Single<Boolean> {
 
         return Single.create { emitter ->
-            if (camera?.disconnect()!!){
-            emitter.onSuccess(true)
-            }else{
+            if (camera?.disconnect()!!) {
+                emitter.onSuccess(true)
+            } else {
                 emitter.onError(HttpConnector.CameraNotFoundException())
             }
         }
@@ -167,6 +168,26 @@ class Theta {
             observeBitmapUpdate(view, it)
         }
 
+    fun startLivePreview(view: ThreeHundredSixtyPlayer) = Observable.create<MJpegInputStream> { emitter ->
+        try {
+            Log.i(TAG, "startLiveView")
+            getJPEGStream(camera!!)?.let { emitter.onNext(it) }
+            emitter.onComplete()
+        } catch (e: Exception) {
+            emitter.onError(e)
+        }
+    }
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .retryWhen { it.delay(500, TimeUnit.MILLISECONDS) }
+        .subscribe({
+            Log.i(TAG, "startLiveView subscribed")
+            observeBitmapUpdate(view, it)
+        }, {
+            Log.e(TAG, "Throwable ${it.message}")
+        })
+
+
     private fun getJPEGStream(camera: ICamera): MJpegInputStream? = try {
         val httpConnector = camera.connection(ipAddress)
         val stream = httpConnector.livePreview
@@ -181,11 +202,29 @@ class Theta {
 
         Log.i(TAG, "observeBitmapUpdate()")
 
-        repaintObserver = fromCallable {
+        repaintObserver = Observable.create<Any> { emitter ->
             try {
-                bitmap?.recycle()
-                bitmap = stream?.readMJpegFrame()
-                view.bitmap = bitmap
+                emitter.onNext({
+                    bitmap?.recycle()
+                    bitmap = stream?.readMJpegFrame()
+                    view.bitmap = bitmap
+                })
+                emitter.onComplete()
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        }.subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .repeatWhen { o -> o.delay(40, TimeUnit.MILLISECONDS) }
+            .subscribe({
+                Log.i(TAG, "painted ${Calendar.getInstance().timeInMillis} $it")
+            }, {
+                Log.e(TAG, "Throwable ${it.message}")
+            })
+        //todo: test functionality
+        /*repaintObserver = fromCallable {
+            try {
+
             } catch (e: Exception) {
                 Log.e(TAG, e.toString())
             }
@@ -196,6 +235,7 @@ class Theta {
             .subscribe {
                 Log.i(TAG, "painted ${Calendar.getInstance().timeInMillis} $it")
             }
+            */
     }
 
     fun stopLiveView() {

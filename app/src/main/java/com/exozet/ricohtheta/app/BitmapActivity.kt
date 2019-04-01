@@ -47,7 +47,8 @@ class BitmapActivity : AppCompatActivity() {
         var savedPhoto: Bitmap? = null
 
         findCamera {
-            theta.startLiveView(threeHundredSixtyView)
+            //theta.startLiveView(threeHundredSixtyView)
+            theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
         }
 
         sample1.parseAssetFile().loadImage(this) {
@@ -105,7 +106,7 @@ class BitmapActivity : AppCompatActivity() {
                 .subscribe { result ->
                     latestFileId = result
                     Log.i(TAG, "snapshot taken $result")
-                    theta.startLiveView(threeHundredSixtyView)
+                    theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
                     transfer.isEnabled = true
                     snapshot.isEnabled = true
                     delete_button.isEnabled = true
