@@ -97,8 +97,6 @@ public class Http2Connector implements HttpConnector {
 
     /**
      * Disconnect to device
-     *
-     *
      */
     public Boolean disconnect() {
 
@@ -106,7 +104,6 @@ public class Http2Connector implements HttpConnector {
         if (mSessionId == null) {
             return false;
         }
-
 
         HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
         JSONObject input = new JSONObject();

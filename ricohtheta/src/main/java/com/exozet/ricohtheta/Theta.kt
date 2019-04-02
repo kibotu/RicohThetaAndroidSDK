@@ -96,7 +96,10 @@ class Theta {
     fun disconnect(): Single<Boolean> {
 
         return Single.create { emitter ->
-            if (camera?.disconnect()!!) {
+            val httpConnector = camera?.connection(ipAddress)
+
+            if (httpConnector?.disconnect()!!)
+             {
                 emitter.onSuccess(true)
             } else {
                 emitter.onError(HttpConnector.CameraNotFoundException())
@@ -202,29 +205,12 @@ class Theta {
 
         Log.i(TAG, "observeBitmapUpdate()")
 
-        repaintObserver = Observable.create<Any> { emitter ->
-            try {
-                emitter.onNext({
-                    bitmap?.recycle()
-                    bitmap = stream?.readMJpegFrame()
-                    view.bitmap = bitmap
-                })
-                emitter.onComplete()
-            } catch (e: Exception) {
-                emitter.onError(e)
-            }
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .repeatWhen { o -> o.delay(40, TimeUnit.MILLISECONDS) }
-            .subscribe({
-                Log.i(TAG, "painted ${Calendar.getInstance().timeInMillis} $it")
-            }, {
-                Log.e(TAG, "Throwable ${it.message}")
-            })
         //todo: test functionality
-        /*repaintObserver = fromCallable {
+        repaintObserver = fromCallable {
             try {
-
+                bitmap?.recycle()
+                bitmap = stream?.readMJpegFrame()
+                view.bitmap = bitmap
             } catch (e: Exception) {
                 Log.e(TAG, e.toString())
             }
@@ -235,7 +221,7 @@ class Theta {
             .subscribe {
                 Log.i(TAG, "painted ${Calendar.getInstance().timeInMillis} $it")
             }
-            */
+
     }
 
     fun stopLiveView() {

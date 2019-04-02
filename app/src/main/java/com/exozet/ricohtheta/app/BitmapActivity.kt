@@ -60,21 +60,24 @@ class BitmapActivity : AppCompatActivity() {
             image2 = it
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            theta.createWirelessConnection(this)
-        }
-
         show.setOnClickListener {
             threeHundredSixtyView.bitmap = savedPhoto
         }
 
         close_connection_button.setOnClickListener {
-            disconnect {
-                if (it) {
-                    Log.v(TAG, "session closed")
-                } else {
-                    Log.e(TAG, "session close fail")
-                }
+            theta.stopLiveView()
+            theta.disconnect().
+                subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                },{
+
+                })
+        }
+
+        start_connection_button.setOnClickListener {
+            findCamera {
+                theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
             }
         }
 
@@ -106,7 +109,7 @@ class BitmapActivity : AppCompatActivity() {
                 .subscribe { result ->
                     latestFileId = result
                     Log.i(TAG, "snapshot taken $result")
-                    theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
+                    //theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
                     transfer.isEnabled = true
                     snapshot.isEnabled = true
                     delete_button.isEnabled = true
@@ -195,18 +198,6 @@ class BitmapActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 onComplete(true)
-            }, {
-                it.printStackTrace()
-                onComplete(false)
-            }).addTo(subscription)
-    }
-
-    private fun disconnect(onComplete: (Boolean) -> Unit) {
-        theta.disconnect()
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                onComplete(it)
             }, {
                 it.printStackTrace()
                 onComplete(false)

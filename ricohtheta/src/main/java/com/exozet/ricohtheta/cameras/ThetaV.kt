@@ -15,8 +15,4 @@ class ThetaV : ICamera {
         httpConnector = Http21Connector(ip4Address)
         return httpConnector!!
     }
-
-    override fun disconnect(): Boolean {
-        return httpConnector?.disconnect() ?: false
-    }
 }

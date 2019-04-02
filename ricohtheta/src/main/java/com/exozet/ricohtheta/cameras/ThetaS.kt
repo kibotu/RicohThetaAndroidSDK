@@ -16,8 +16,4 @@ class ThetaS : ICamera {
         httpConnector = Http2Connector(ip4Address)
         return httpConnector!!
     }
-
-    override fun disconnect(): Boolean {
-        return httpConnector?.disconnect() ?: false
-    }
 }

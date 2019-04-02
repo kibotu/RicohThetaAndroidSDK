@@ -11,6 +11,4 @@ interface ICamera {
     val isConnected: Boolean
 
     fun connection(ip4Address: String): HttpConnector
-
-    fun disconnect() : Boolean
 }
