@@ -3,16 +3,13 @@ package com.exozet.ricohtheta.cameras
 import com.exozet.ricohtheta.internal.network.HttpConnector
 import com.exozet.ricohtheta.internal.network.v21.Http21Connector
 
-class ThetaV : ICamera {
+class ThetaV(
+    override val ip4Address: String = "192.168.1.1"
+) : ICamera {
+
+    override var isConnected = false
 
     override val deviceInfoName = "RICOH THETA V"
 
-    override val isConnected: Boolean = false
-
-    override var httpConnector: HttpConnector? = null
-
-    override fun connection(ip4Address: String): HttpConnector {
-        httpConnector = Http21Connector(ip4Address)
-        return httpConnector!!
-    }
+    override var httpConnector: HttpConnector? = Http21Connector(ip4Address)
 }

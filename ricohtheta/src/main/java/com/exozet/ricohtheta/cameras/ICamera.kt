@@ -6,9 +6,9 @@ interface ICamera {
 
     val deviceInfoName: String
 
+    val ip4Address: String
+
     var httpConnector: HttpConnector?
 
-    val isConnected: Boolean
-
-    fun connection(ip4Address: String): HttpConnector
+    var isConnected: Boolean
 }

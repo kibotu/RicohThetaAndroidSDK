@@ -6,6 +6,7 @@ import com.squareup.leakcanary.LeakCanary
 
 
 class App : MultiDexApplication() {
+
     override fun onCreate() {
         super.onCreate()
 

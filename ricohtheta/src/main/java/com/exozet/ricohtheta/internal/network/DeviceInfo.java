@@ -67,4 +67,13 @@ public class DeviceInfo {
     public void setDeviceVersion(String version) {
         mDeviceVersion = version;
     }
+
+    @Override
+    public String toString() {
+        return "DeviceInfo{" +
+                "mModel='" + mModel + '\'' +
+                ", mDeviceVersion='" + mDeviceVersion + '\'' +
+                ", mSerialNumber='" + mSerialNumber + '\'' +
+                '}';
+    }
 }

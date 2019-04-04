@@ -17,7 +17,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * HTTP connection to device
+ * HTTP connect to device
  */
 public class Http21Connector implements HttpConnector {
     private final static long CHECK_STATUS_PERIOD_MS = 50;
@@ -30,7 +30,8 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Constructor
-     * @param cameraIpAddress IP address of connection destination
+     *
+     * @param cameraIpAddress IP address of connect destination
      */
     public Http21Connector(String cameraIpAddress) {
         mIpAddress = cameraIpAddress;
@@ -44,6 +45,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire storage information of device
+     *
      * @return Storage information
      */
     public StorageInfo getStorageInfo() {
@@ -109,6 +111,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire device information
+     *
      * @return Device information
      */
     public DeviceInfo getDeviceInfo() {
@@ -160,6 +163,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire list of media files on device
+     *
      * @return Media file list
      */
     public ArrayList<ImageInfo> getList() {
@@ -178,8 +182,9 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire media file list (limited number of items)
+     *
      * @param maxReceiveEntry Maximum number of files that can be acquired at once
-     * @param startPosition Set the previously acquired token to continue. Set null if acquiring for the first time.
+     * @param startPosition   Set the previously acquired token to continue. Set null if acquiring for the first time.
      * @return List of specified number of media files
      */
     private ArrayList<ImageInfo> getListInternal(int maxReceiveEntry, int startPosition) {
@@ -270,13 +275,14 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire thumbnail image
+     *
      * @param fileId File ID
      * @return Thumbnail (null is returned if acquisition fails)
      */
     public Bitmap getThumb(String fileId) {
         HttpURLConnection postConnection = null;
         try {
-            postConnection = (HttpURLConnection)new URL(fileId+"?type=thumb").openConnection();
+            postConnection = (HttpURLConnection) new URL(fileId + "?type=thumb").openConnection();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -309,6 +315,7 @@ public class Http21Connector implements HttpConnector {
     /**
      * Take photo<p>
      * After shooting, the status is checked for each {@link HttpConnector#CHECK_STATUS_PERIOD_MS} and the listener notifies you of the status.
+     *
      * @param listener Post-shooting event listener
      * @return Shooting request results
      */
@@ -380,30 +387,9 @@ public class Http21Connector implements HttpConnector {
         return result;
     }
 
-    private class CapturedTimerTask extends TimerTask {
-        private String mCommandId;
-
-        public void setCommandId(String commandId) {
-            mCommandId = commandId;
-        }
-
-        @Override
-        public void run() {
-            String capturedFileId = checkCaptureStatus(mCommandId);
-
-            if (capturedFileId != null) {
-                mHttpEventListener.onCheckStatus(true);
-                mCheckStatusTimer.cancel();
-                mHttpEventListener.onObjectChanged(capturedFileId);
-                mHttpEventListener.onCompleted();
-            } else {
-                mHttpEventListener.onCheckStatus(false);
-            }
-        }
-    }
-
     /**
      * Check still image shooting status
+     *
      * @param commandId Command ID for shooting still images
      * @return ID of saved file (null is returned if the file is not saved)
      */
@@ -454,14 +440,15 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire raw data of specified image
-     * @param fileId File ID
+     *
+     * @param fileId   File ID
      * @param listener Listener for receiving received data count
      * @return Image data
      */
     public ImageData getImage(String fileId, HttpDownloadListener listener) {
         HttpURLConnection postConnection = null;
         try {
-            postConnection = (HttpURLConnection)new URL(fileId).openConnection();
+            postConnection = (HttpURLConnection) new URL(fileId).openConnection();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -507,6 +494,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire live view stream
+     *
      * @return Stream for receiving data
      * @throws IOException
      */
@@ -566,8 +554,9 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Delete specified file
+     *
      * @param deletedFileId File ID
-     * @param listener Listener for receiving deletion results
+     * @param listener      Listener for receiving deletion results
      */
     public void deleteFile(String deletedFileId, HttpEventListener listener) {
 
@@ -631,94 +620,8 @@ public class Http21Connector implements HttpConnector {
     }
 
     /**
-     * Status check class for file deletion
-     */
-    private class DeletedTimerTask extends TimerTask {
-        private String mDeletedFileId = null;
-
-        public void setDeletedFileId(String deletedFileId) {
-            mDeletedFileId = deletedFileId;
-        }
-
-        @Override
-        public void run() {
-            boolean update = isUpdate();
-            mHttpEventListener.onCheckStatus(update);
-            if (update) {
-                mCheckStatusTimer.cancel();
-                getState();
-                mHttpEventListener.onObjectChanged(mDeletedFileId);
-                mHttpEventListener.onCompleted();
-                mFingerPrint = null;
-            }
-        }
-    }
-
-    /**
-     * Specify shooting size
-     * @param imageSize Shooting size
-     */
-    public void setImageSize(ImageSize imageSize) {
-        int width;
-        int height;
-        switch (imageSize) {
-            case IMAGE_SIZE_2048x1024:
-                width = 2048;
-                height = 1024;
-                break;
-            default:
-            case IMAGE_SIZE_5376x2688:
-                width = 5376;
-                height = 2688;
-                break;
-        }
-
-        // set capture mode to image
-        setImageCaptureMode();
-
-        HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
-        JSONObject input = new JSONObject();
-        String responseData;
-        InputStream is = null;
-
-        try {
-            // send HTTP POST
-            input.put("name", "camera.setOptions");
-            JSONObject parameters = new JSONObject();
-            JSONObject options = new JSONObject();
-            JSONObject fileFormat = new JSONObject();
-            fileFormat.put("type", "jpeg");
-            fileFormat.put("width", width);
-            fileFormat.put("height", height);
-            options.put("fileFormat", fileFormat);
-            parameters.put("options", options);
-            input.put("parameters", parameters);
-
-            OutputStream os = postConnection.getOutputStream();
-            os.write(input.toString().getBytes());
-            postConnection.connect();
-            os.flush();
-            os.close();
-
-            is = postConnection.getInputStream();
-            responseData = InputStreamToString(is);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    /**
      * Acquire currently set shooting size
+     *
      * @return Shooting size (null is returned if acquisition fails)
      */
     public ImageSize getImageSize() {
@@ -784,7 +687,72 @@ public class Http21Connector implements HttpConnector {
     }
 
     /**
+     * Specify shooting size
+     *
+     * @param imageSize Shooting size
+     */
+    public void setImageSize(ImageSize imageSize) {
+        int width;
+        int height;
+        switch (imageSize) {
+            case IMAGE_SIZE_2048x1024:
+                width = 2048;
+                height = 1024;
+                break;
+            default:
+            case IMAGE_SIZE_5376x2688:
+                width = 5376;
+                height = 2688;
+                break;
+        }
+
+        // set capture mode to image
+        setImageCaptureMode();
+
+        HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
+        JSONObject input = new JSONObject();
+        String responseData;
+        InputStream is = null;
+
+        try {
+            // send HTTP POST
+            input.put("name", "camera.setOptions");
+            JSONObject parameters = new JSONObject();
+            JSONObject options = new JSONObject();
+            JSONObject fileFormat = new JSONObject();
+            fileFormat.put("type", "jpeg");
+            fileFormat.put("width", width);
+            fileFormat.put("height", height);
+            options.put("fileFormat", fileFormat);
+            parameters.put("options", options);
+            input.put("parameters", parameters);
+
+            OutputStream os = postConnection.getOutputStream();
+            os.write(input.toString().getBytes());
+            postConnection.connect();
+            os.flush();
+            os.close();
+
+            is = postConnection.getInputStream();
+            responseData = InputStreamToString(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
      * Set still image as shooting mode
+     *
      * @return Error message (null is returned if successful)
      */
     private String setImageCaptureMode() {
@@ -862,6 +830,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Acquire device status
+     *
      * @return Last saved file
      */
     private String getState() {
@@ -901,6 +870,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Check for updates to device status
+     *
      * @return true:Update available, false:No update available
      */
     private boolean isUpdate() {
@@ -953,7 +923,8 @@ public class Http21Connector implements HttpConnector {
     }
 
     /**
-     * Generate connection destination URL
+     * Generate connect destination URL
+     *
      * @param path Path
      * @return URL
      */
@@ -967,9 +938,10 @@ public class Http21Connector implements HttpConnector {
     }
 
     /**
-     * Generate HTTP connection
+     * Generate HTTP connect
+     *
      * @param method Method
-     * @param path Path
+     * @param path   Path
      * @return HTTP Connection instance
      */
     private HttpURLConnection createHttpConnection(String method, String path) {
@@ -997,6 +969,7 @@ public class Http21Connector implements HttpConnector {
 
     /**
      * Convert input stream to string
+     *
      * @param is InputStream
      * @return String
      * @throws IOException IO error
@@ -1010,5 +983,51 @@ public class Http21Connector implements HttpConnector {
         }
         br.close();
         return sb.toString();
+    }
+
+    private class CapturedTimerTask extends TimerTask {
+        private String mCommandId;
+
+        public void setCommandId(String commandId) {
+            mCommandId = commandId;
+        }
+
+        @Override
+        public void run() {
+            String capturedFileId = checkCaptureStatus(mCommandId);
+
+            if (capturedFileId != null) {
+                mHttpEventListener.onCheckStatus(true);
+                mCheckStatusTimer.cancel();
+                mHttpEventListener.onObjectChanged(capturedFileId);
+                mHttpEventListener.onCompleted();
+            } else {
+                mHttpEventListener.onCheckStatus(false);
+            }
+        }
+    }
+
+    /**
+     * Status check class for file deletion
+     */
+    private class DeletedTimerTask extends TimerTask {
+        private String mDeletedFileId = null;
+
+        public void setDeletedFileId(String deletedFileId) {
+            mDeletedFileId = deletedFileId;
+        }
+
+        @Override
+        public void run() {
+            boolean update = isUpdate();
+            mHttpEventListener.onCheckStatus(update);
+            if (update) {
+                mCheckStatusTimer.cancel();
+                getState();
+                mHttpEventListener.onObjectChanged(mDeletedFileId);
+                mHttpEventListener.onCompleted();
+                mFingerPrint = null;
+            }
+        }
     }
 }

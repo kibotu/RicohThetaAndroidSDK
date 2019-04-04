@@ -2,6 +2,8 @@ package com.exozet.ricohtheta.internal.network.v2;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.exozet.ricohtheta.internal.model.ImageSize;
 import com.exozet.ricohtheta.internal.network.*;
 import org.json.JSONArray;
@@ -17,7 +19,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * HTTP connection to device
+ * HTTP connect to device
  */
 public class Http2Connector implements HttpConnector {
     private final static long CHECK_STATUS_PERIOD_MS = 50;
@@ -33,7 +35,7 @@ public class Http2Connector implements HttpConnector {
     /**
      * Constructor
      *
-     * @param cameraIpAddress IP address of connection destination
+     * @param cameraIpAddress IP address of connect destination
      */
     public Http2Connector(String cameraIpAddress) {
         mIpAddress = cameraIpAddress;
@@ -42,7 +44,7 @@ public class Http2Connector implements HttpConnector {
     /**
      * Connect to device
      *
-     * @return Session ID (null is returned if the connection fails)
+     * @return Session ID (null is returned if the connect fails)
      */
     public String connect() {
         HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
@@ -387,7 +389,8 @@ public class Http2Connector implements HttpConnector {
      * @param fileId File ID
      * @return Thumbnail (null is returned if acquisition fails)
      */
-    public Bitmap getThumb(String fileId) {
+    @Nullable
+    public Bitmap getThumb(@NonNull String fileId) {
         HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
         JSONObject input = new JSONObject();
         Bitmap thumbnail = null;
@@ -510,28 +513,6 @@ public class Http2Connector implements HttpConnector {
         }
 
         return result;
-    }
-
-    private class CapturedTimerTask extends TimerTask {
-        private String mCommandId;
-
-        public void setCommandId(String commandId) {
-            mCommandId = commandId;
-        }
-
-        @Override
-        public void run() {
-            String capturedFileId = checkCaptureStatus(mCommandId);
-
-            if (capturedFileId != null) {
-                mHttpEventListener.onCheckStatus(true);
-                mCheckStatusTimer.cancel();
-                mHttpEventListener.onObjectChanged(capturedFileId);
-                mHttpEventListener.onCompleted();
-            } else {
-                mHttpEventListener.onCheckStatus(false);
-            }
-        }
     }
 
     /**
@@ -779,96 +760,6 @@ public class Http2Connector implements HttpConnector {
     }
 
     /**
-     * Status check class for file deletion
-     */
-    private class DeletedTimerTask extends TimerTask {
-        private String mDeletedFileId = null;
-
-        public void setDeletedFileId(String deletedFileId) {
-            mDeletedFileId = deletedFileId;
-        }
-
-        @Override
-        public void run() {
-            boolean update = isUpdate();
-            mHttpEventListener.onCheckStatus(update);
-            if (update) {
-                mCheckStatusTimer.cancel();
-                getState();
-                mHttpEventListener.onObjectChanged(mDeletedFileId);
-                mHttpEventListener.onCompleted();
-                mFingerPrint = null;
-            }
-        }
-    }
-
-    /**
-     * Specify shooting size
-     *
-     * @param imageSize Shooting size
-     */
-    public void setImageSize(ImageSize imageSize) {
-        int width;
-        int height;
-        switch (imageSize) {
-            case IMAGE_SIZE_2048x1024:
-                width = 2048;
-                height = 1024;
-                break;
-            default:
-            case IMAGE_SIZE_5376x2688:
-                width = 5376;
-                height = 2688;
-                break;
-        }
-        mSessionId = connect();
-
-        // set capture mode to image
-        setImageCaptureMode(mSessionId);
-
-        HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
-        JSONObject input = new JSONObject();
-        String responseData;
-        InputStream is = null;
-
-        try {
-            // send HTTP POST
-            input.put("name", "camera.setOptions");
-            JSONObject parameters = new JSONObject();
-            parameters.put("sessionId", mSessionId);
-            JSONObject options = new JSONObject();
-            JSONObject fileFormat = new JSONObject();
-            fileFormat.put("type", "jpeg");
-            fileFormat.put("width", width);
-            fileFormat.put("height", height);
-            options.put("fileFormat", fileFormat);
-            parameters.put("options", options);
-            input.put("parameters", parameters);
-
-            OutputStream os = postConnection.getOutputStream();
-            os.write(input.toString().getBytes());
-            postConnection.connect();
-            os.flush();
-            os.close();
-
-            is = postConnection.getInputStream();
-            responseData = InputStreamToString(is);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    /**
      * Acquire currently set shooting size
      *
      * @return Shooting size (null is returned if acquisition fails)
@@ -935,6 +826,72 @@ public class Http2Connector implements HttpConnector {
         }
 
         return imageSize;
+    }
+
+    /**
+     * Specify shooting size
+     *
+     * @param imageSize Shooting size
+     */
+    public void setImageSize(ImageSize imageSize) {
+        int width;
+        int height;
+        switch (imageSize) {
+            case IMAGE_SIZE_2048x1024:
+                width = 2048;
+                height = 1024;
+                break;
+            default:
+            case IMAGE_SIZE_5376x2688:
+                width = 5376;
+                height = 2688;
+                break;
+        }
+        mSessionId = connect();
+
+        // set capture mode to image
+        setImageCaptureMode(mSessionId);
+
+        HttpURLConnection postConnection = createHttpConnection("POST", "/osc/commands/execute");
+        JSONObject input = new JSONObject();
+        String responseData;
+        InputStream is = null;
+
+        try {
+            // send HTTP POST
+            input.put("name", "camera.setOptions");
+            JSONObject parameters = new JSONObject();
+            parameters.put("sessionId", mSessionId);
+            JSONObject options = new JSONObject();
+            JSONObject fileFormat = new JSONObject();
+            fileFormat.put("type", "jpeg");
+            fileFormat.put("width", width);
+            fileFormat.put("height", height);
+            options.put("fileFormat", fileFormat);
+            parameters.put("options", options);
+            input.put("parameters", parameters);
+
+            OutputStream os = postConnection.getOutputStream();
+            os.write(input.toString().getBytes());
+            postConnection.connect();
+            os.flush();
+            os.close();
+
+            is = postConnection.getInputStream();
+            responseData = InputStreamToString(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
@@ -1112,7 +1069,7 @@ public class Http2Connector implements HttpConnector {
     }
 
     /**
-     * Generate connection destination URL
+     * Generate connect destination URL
      *
      * @param path Path
      * @return URL
@@ -1127,7 +1084,7 @@ public class Http2Connector implements HttpConnector {
     }
 
     /**
-     * Generate HTTP connection
+     * Generate HTTP connect
      *
      * @param method Method
      * @param path   Path
@@ -1172,5 +1129,51 @@ public class Http2Connector implements HttpConnector {
         }
         br.close();
         return sb.toString();
+    }
+
+    private class CapturedTimerTask extends TimerTask {
+        private String mCommandId;
+
+        public void setCommandId(String commandId) {
+            mCommandId = commandId;
+        }
+
+        @Override
+        public void run() {
+            String capturedFileId = checkCaptureStatus(mCommandId);
+
+            if (capturedFileId != null) {
+                mHttpEventListener.onCheckStatus(true);
+                mCheckStatusTimer.cancel();
+                mHttpEventListener.onObjectChanged(capturedFileId);
+                mHttpEventListener.onCompleted();
+            } else {
+                mHttpEventListener.onCheckStatus(false);
+            }
+        }
+    }
+
+    /**
+     * Status check class for file deletion
+     */
+    private class DeletedTimerTask extends TimerTask {
+        private String mDeletedFileId = null;
+
+        public void setDeletedFileId(String deletedFileId) {
+            mDeletedFileId = deletedFileId;
+        }
+
+        @Override
+        public void run() {
+            boolean update = isUpdate();
+            mHttpEventListener.onCheckStatus(update);
+            if (update) {
+                mCheckStatusTimer.cancel();
+                getState();
+                mHttpEventListener.onObjectChanged(mDeletedFileId);
+                mHttpEventListener.onCompleted();
+                mFingerPrint = null;
+            }
+        }
     }
 }

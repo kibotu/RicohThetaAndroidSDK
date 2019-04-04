@@ -1,273 +1,219 @@
 package com.exozet.ricohtheta
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
-import android.os.Build
 import android.os.Environment
-import android.util.Log
-import androidx.annotation.RequiresApi
+import com.exozet.ITheta
 import com.exozet.ricohtheta.cameras.ICamera
 import com.exozet.ricohtheta.internal.network.HttpConnector
 import com.exozet.ricohtheta.internal.network.HttpDownloadListener
 import com.exozet.ricohtheta.internal.network.HttpEventListener
 import com.exozet.ricohtheta.internal.network.ImageData
 import com.exozet.ricohtheta.internal.view.MJpegInputStream
-import com.exozet.ricohtheta.internal.view.MJpegView
 import com.exozet.threehundredsixtyplayer.ThreeHundredSixtyPlayer
 import io.reactivex.Observable
-import io.reactivex.Observable.fromCallable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 
-class Theta {
+class Theta : ITheta {
 
     private val cameras = ArrayList<ICamera>()
 
-    private var camera: ICamera? = null
+    // region ITheta
 
-    private var ipAddress: String = ""
+    override val isConnected
+        get() = cameras.any { it.isConnected }
 
-    private var repaintObserver: Disposable? = null
+    override val connectedCameras
+        get() = cameras.filter { it.isConnected }
 
-    fun addCamera(camera: ICamera): Theta {
+    override fun addCamera(camera: ICamera): Theta {
         cameras.add(camera)
         return this
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    fun createWirelessConnection(activity: Activity) {
-        val cm = activity.application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    override fun findCameras() = Observable.create<ICamera> { emitter ->
 
-        val request = NetworkRequest.Builder()
-        request.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-
-        cm.registerNetworkCallback(request.build(), object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network?) {
-                super.onAvailable(network)
-                when {
-                    Build.VERSION.SDK_INT >= 23 -> {
-                        cm.bindProcessToNetwork(network)
-                    }
-                    else -> {
-                        ConnectivityManager.setProcessDefaultNetwork(network)
-                    }
-                }
+        val cameras = cameras.mapNotNull { camera ->
+            camera.httpConnector?.deviceInfo?.also {
+                camera.isConnected = true
+                emitter.onNext(camera)
+                emitter.onComplete()
+                return@create
             }
-        })
+        }
+
+        if (cameras.isEmpty())
+            emitter.onError(HttpConnector.CameraNotFoundException())
     }
 
-    fun findConnectedCamera(ipAddress: String): Single<ICamera> {
-        this.ipAddress = ipAddress
-        this.camera = null
+    override fun disconnect() = Observable.create<ICamera> { emitter ->
 
-        return Single.create { emitter ->
-            cameras.forEach {
-                try {
-                    val model = it.connection(ipAddress).deviceInfo.model
+        val cameras = cameras.mapNotNull { camera ->
 
-                    if (model.isNotEmpty() && model.compareTo(it.deviceInfoName) == 0) {
-                        camera = it
-                    }
-                } catch (t: Throwable) {
-                    emitter.onError(t)
-                }
-            }
-
-            if (camera != null) {
-                emitter.onSuccess(camera!!)
-            } else {
-                emitter.onError(HttpConnector.CameraNotFoundException())
+            camera.httpConnector?.disconnect()?.also {
+                emitter.onNext(camera)
             }
         }
+
+        if (cameras.isEmpty())
+            emitter.onError(HttpConnector.CameraNotFoundException())
     }
 
-    fun disconnect(): Single<Boolean> {
+    override fun getThumbnail(fileId: String) = Single.create<Bitmap> { emitter ->
 
-        return Single.create { emitter ->
-            val httpConnector = camera?.connection(ipAddress)
-
-            if (httpConnector?.disconnect()!!)
-             {
-                emitter.onSuccess(true)
-            } else {
-                emitter.onError(HttpConnector.CameraNotFoundException())
-            }
-        }
-    }
-
-    val isConnected: Boolean
-        get() = camera?.isConnected == true
-
-    fun takePicture(): Single<String> {
-        camera?.let {
-            stopLiveView()
-            val camera = it.connection(ipAddress)
-
-            var captureId = ""
-
-            return Single.create { emitter ->
-                camera.takePicture(object : HttpEventListener {
-                    override fun onCheckStatus(newStatus: Boolean) {}
-
-                    override fun onObjectChanged(latestCapturedFileId: String?) {
-
-                        latestCapturedFileId?.let { id ->
-                            captureId = id
-                        }
-                    }
-
-                    override fun onCompleted() {
-                        emitter.onSuccess(captureId)
-                    }
-
-                    override fun onError(errorMessage: String?) {
-                        emitter.onError(Throwable(errorMessage))
-                    }
-                })
-            }
+        if (connectedCameras.isEmpty()) {
+            emitter.onError(HttpConnector.CameraNotFoundException())
+            return@create
         }
 
-        return Single.error(HttpConnector.CameraNotFoundException())
-    }
-
-
-    fun startLiveView(view: MJpegView) = fromCallable {
-        camera?.let {
-            Log.i(TAG, "startLiveView")
-            getJPEGStream(it)
-        }
-    }.subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
-        .retryWhen { o -> o.delay(500, TimeUnit.MILLISECONDS) }
-        .subscribe {
-            Log.i(TAG, "startLiveView subscribed")
-            view.setSource(it)
-        }
-
-    fun startLiveView(view: ThreeHundredSixtyPlayer) = fromCallable {
-        camera?.let {
-            Log.i(TAG, "startLiveView")
-            getJPEGStream(it)
-        }
-    }.subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
-        .retryWhen { it.delay(500, TimeUnit.MILLISECONDS) }
-        .subscribe {
-            Log.i(TAG, "startLiveView subscribed")
-            observeBitmapUpdate(view, it)
-        }
-
-    fun startLivePreview(view: ThreeHundredSixtyPlayer) = Observable.create<MJpegInputStream> { emitter ->
         try {
-            Log.i(TAG, "startLiveView")
-            getJPEGStream(camera!!)?.let { emitter.onNext(it) }
-            emitter.onComplete()
+            val bitmap = connectedCameras.first().httpConnector?.getThumb(fileId)
+            emitter.onSuccess(bitmap!!)
         } catch (e: Exception) {
             emitter.onError(e)
         }
     }
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .retryWhen { it.delay(500, TimeUnit.MILLISECONDS) }
-        .subscribe({
-            Log.i(TAG, "startLiveView subscribed")
-            observeBitmapUpdate(view, it)
-        }, {
-            Log.e(TAG, "Throwable ${it.message}")
+
+    override fun takePicture() = Observable.create<String> { emitter ->
+
+        if (connectedCameras.isEmpty()) {
+            emitter.onError(HttpConnector.CameraNotFoundException())
+            return@create
+        }
+
+        connectedCameras.first().httpConnector?.takePicture(object : HttpEventListener {
+
+            override fun onCheckStatus(newStatus: Boolean) = Unit
+
+            override fun onObjectChanged(latestCapturedFileId: String?) = emitter.onNext(latestCapturedFileId ?: "")
+
+            override fun onCompleted() = emitter.onComplete()
+
+            override fun onError(errorMessage: String?) = emitter.onError(Throwable(errorMessage))
         })
+    }
+
+    override fun startLivePreview(view: ThreeHundredSixtyPlayer) = startLivePreview()
+        .observeOn(AndroidSchedulers.mainThread())
+        .map {
+            view.bitmap = it
+        }
+
+    private var livePreview: MJpegInputStream? = null
+
+    private fun cleanupLivePreview() {
+        try {
+            livePreview?.close()
+            livePreview = null
+
+        } catch (e: Exception) {
+            e.log()
+        }
+    }
+
+    override fun startLivePreview(delay: Long, timeUnit: TimeUnit) = Observable.create<Bitmap> { emitter ->
 
 
-    private fun getJPEGStream(camera: ICamera): MJpegInputStream? = try {
-        val httpConnector = camera.connection(ipAddress)
-        val stream = httpConnector.livePreview
-        MJpegInputStream(stream)
+        if (connectedCameras.isEmpty()) {
+            emitter.onError(HttpConnector.CameraNotFoundException())
+            return@create
+        }
+
+        try {
+            val startTime = System.currentTimeMillis()
+            val httpConnector = connectedCameras.first().httpConnector
+            if (livePreview == null) {
+                livePreview = httpConnector?.getLivePreview()?.asJPEGStream()
+            }
+            livePreview?.let {
+
+
+                if (!emitter.isDisposed)
+                    emitter.onNext(it.readMJpegFrame())
+                log("reading bitmap ${System.currentTimeMillis() - startTime}")
+            }
+
+            if (!emitter.isDisposed)
+                emitter.onComplete()
+
+        } catch (e: Exception) {
+            log("startLivePreview $e")
+            if (!emitter.isDisposed)
+                emitter.onError(e)
+        }
+    }.repeat().doOnDispose {
+        cleanupLivePreview()
+    }.doOnError {
+        it.log()
+    }
+
+    fun InputStream.asJPEGStream(): MJpegInputStream? = try {
+        MJpegInputStream(this)
     } catch (e: Exception) {
-        Log.e(TAG, e.toString())
+        loge(e.toString())
         null
     }
 
-    private fun observeBitmapUpdate(view: ThreeHundredSixtyPlayer, stream: MJpegInputStream?) {
-        var bitmap: Bitmap? = null
+    override fun transfer(fileId: String) = Single.create<ImageData> { emitter ->
 
-        Log.i(TAG, "observeBitmapUpdate()")
-
-        //todo: test functionality
-        repaintObserver = fromCallable {
-            try {
-                bitmap?.recycle()
-                bitmap = stream?.readMJpegFrame()
-                view.bitmap = bitmap
-            } catch (e: Exception) {
-                Log.e(TAG, e.toString())
-            }
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
-            .repeatWhen { o -> o.delay(40, TimeUnit.MILLISECONDS) }
-            .subscribe {
-                Log.i(TAG, "painted ${Calendar.getInstance().timeInMillis} $it")
-            }
-
-    }
-
-    fun stopLiveView() {
-        repaintObserver?.dispose()
-    }
-
-    fun transfer(fileId: String): Single<ImageData> {
-        camera?.let {
-            stopLiveView()
-            val camera = it.connection(ipAddress)
-
-            var totalFileSize = 0L
-            var fileSize = 0L
-
-            return Single.create { emitter ->
-                val imageData = camera.getImage(fileId, object : HttpDownloadListener {
-                    override fun onTotalSize(totalSize: Long) {
-                        totalFileSize = totalSize
-                    }
-
-                    override fun onDataReceived(size: Int) {
-                        fileSize += size
-                    }
-                })
-
-                emitter.onSuccess(imageData)
-            }
+        if (connectedCameras.isEmpty()) {
+            emitter.onError(HttpConnector.CameraNotFoundException())
+            return@create
         }
 
-        return Single.error(HttpConnector.CameraNotFoundException())
+        try {
+            val imageData = connectedCameras.first().httpConnector?.getImage(fileId, object : HttpDownloadListener {
+
+                var totalFileSize = 0L
+
+                var fileSize = 0L
+
+                override fun onTotalSize(totalSize: Long) {
+                    totalFileSize = totalSize
+                }
+
+                override fun onDataReceived(size: Int) {
+                    fileSize += size
+                }
+            })
+
+            emitter.onSuccess(imageData!!)
+
+        } catch (e: Exception) {
+            emitter.onError(e)
+        }
     }
 
+    override fun deleteOnCamera(filename: String) = Observable.create<Boolean> { emitter ->
 
-    fun getThumbnail(fileId: String): Single<Bitmap> {
-        camera?.let {
-            val camera = it.connection(ipAddress)
-
-            return Single.create { emitter ->
-                val imageData = camera.getThumb(fileId)
-
-                emitter.onSuccess(imageData)
-            }
+        if (connectedCameras.isEmpty()) {
+            emitter.onError(HttpConnector.CameraNotFoundException())
+            return@create
         }
 
-        return Single.error(HttpConnector.CameraNotFoundException())
+        try {
+            connectedCameras.first().httpConnector?.deleteFile(filename, object : HttpEventListener {
+                override fun onCheckStatus(newStatus: Boolean) = Unit
+
+                override fun onObjectChanged(latestCapturedFileId: String?) = emitter.onNext(latestCapturedFileId != null)
+
+                override fun onCompleted() = emitter.onComplete()
+
+                override fun onError(errorMessage: String?) = emitter.onError(Throwable(errorMessage))
+            })
+
+        } catch (e: Exception) {
+            emitter.onError(e)
+        }
     }
+
+    // endregion
 
     fun saveExternal(context: Context, imageData: ImageData, folderName: String, fileName: String): File {
         val path = Environment.getExternalStorageDirectory().toString()
@@ -306,36 +252,5 @@ class Theta {
         }
 
         return file
-    }
-
-    fun deleteOnCamera(filename: String): Single<Boolean> {
-        camera?.let {
-            val camera = it.connection(ipAddress)
-
-            return Single.create { emitter ->
-                camera.deleteFile(filename, object : HttpEventListener {
-                    override fun onCheckStatus(newStatus: Boolean) {
-                    }
-
-                    override fun onObjectChanged(latestCapturedFileId: String?) {
-                    }
-
-                    override fun onCompleted() {
-                        emitter.onSuccess(true)
-                    }
-
-                    override fun onError(errorMessage: String?) {
-                        emitter.onError(Throwable(errorMessage))
-                    }
-                })
-            }
-        }
-
-        return Single.error(HttpConnector.CameraNotFoundException())
-    }
-
-    companion object {
-        internal val Any.TAG: String
-            get () = this::class.java.simpleName
     }
 }

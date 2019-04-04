@@ -2,17 +2,18 @@ package com.exozet.ricohtheta.app
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.exozet.ricohtheta.Theta
+import com.exozet.ricohtheta.cameras.ICamera
 import com.exozet.ricohtheta.cameras.ThetaS
 import com.exozet.ricohtheta.cameras.ThetaV
 import com.exozet.threehundredsixtyplayer.loadImage
 import com.exozet.threehundredsixtyplayer.parseAssetFile
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_bitmap.*
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit
 
 class BitmapActivity : AppCompatActivity() {
 
-    private val TAG = Theta::class.java.simpleName
+    private val TAG = BitmapActivity::class.java.simpleName
     private var latestFileId: String? = null
 
     val theta by lazy {
@@ -29,6 +30,8 @@ class BitmapActivity : AppCompatActivity() {
     }
 
     var subscription: CompositeDisposable = CompositeDisposable()
+
+    var livePreviewStream: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,8 +50,8 @@ class BitmapActivity : AppCompatActivity() {
         var savedPhoto: Bitmap? = null
 
         findCamera {
-            //theta.startLiveView(threeHundredSixtyView)
-            theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
+            startLivePreview()
+            Log.v( TAG,"connected: ${it.deviceInfoName}")
         }
 
         sample1.parseAssetFile().loadImage(this) {
@@ -65,19 +68,12 @@ class BitmapActivity : AppCompatActivity() {
         }
 
         close_connection_button.setOnClickListener {
-            theta.stopLiveView()
-            theta.disconnect().
-                subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                },{
-
-                })
+            disposeLivePreview()
         }
 
         start_connection_button.setOnClickListener {
             findCamera {
-                theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
+                startLivePreview()
             }
         }
 
@@ -160,15 +156,14 @@ class BitmapActivity : AppCompatActivity() {
                 theta.deleteOnCamera(id)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .doOnSuccess { result ->
-                        if (result) {
+                    .subscribe({
+                        if (it) {
                             val filename = id.substringAfter("/")
 
                             theta.deleteExternal(this, "/exozet Ricoh sdk/", filename)
 
                         }
-                    }
-                    .subscribe()
+                    }, { it.printStackTrace() })
             }
         }
 
@@ -176,7 +171,7 @@ class BitmapActivity : AppCompatActivity() {
 
             threeHundredSixtyView.vrLibrary?.renderer?.takeScreenshot {
 
-                Log.v(TAG, "[takeScreenshot] bitmap width=${it.width} height=${it.height}")
+                Log.v( TAG, "[takeScreenshot] bitmap width=${it.width} height=${it.height}")
 
                 runOnUiThread {
                     thumb.setImageBitmap(it)
@@ -185,22 +180,38 @@ class BitmapActivity : AppCompatActivity() {
         }
     }
 
+    private fun startLivePreview() {
+        disposeLivePreview()
+        livePreviewStream = theta.startLivePreview(threeHundredSixtyView)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({}, { it.printStackTrace() })
+    }
+
 
     override fun onDestroy() {
-        subscription.dispose()
+        if (!subscription.isDisposed) {
+            subscription.dispose()
+        }
+        disposeLivePreview()
         super.onDestroy()
     }
 
-    private fun findCamera(onComplete: (Boolean) -> Unit) {
-        theta.findConnectedCamera("192.168.1.1")
+    private fun disposeLivePreview() {
+        if (livePreviewStream?.isDisposed == false) {
+            livePreviewStream?.dispose()
+        }
+    }
+
+    private fun findCamera(onComplete: (ICamera) -> Unit) {
+        theta.findCameras()
             .retryWhen { it.delay(500, TimeUnit.MILLISECONDS) }
-            .subscribeOn(Schedulers.newThread())
+            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                onComplete(true)
+                onComplete(it)
             }, {
                 it.printStackTrace()
-                onComplete(false)
             }).addTo(subscription)
     }
 }
