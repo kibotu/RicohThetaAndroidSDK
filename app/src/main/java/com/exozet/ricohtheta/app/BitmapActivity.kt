@@ -185,6 +185,7 @@ class BitmapActivity : AppCompatActivity() {
         livePreviewStream = theta.startLivePreview(threeHundredSixtyView)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+            .doOnError{Log.e(TAG, "fail ${it.message}")}
             .subscribe({}, { it.printStackTrace() })
     }
 
@@ -205,7 +206,6 @@ class BitmapActivity : AppCompatActivity() {
 
     private fun findCamera(onComplete: (ICamera) -> Unit) {
         theta.findCameras()
-            .retryWhen { it.delay(500, TimeUnit.MILLISECONDS) }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({

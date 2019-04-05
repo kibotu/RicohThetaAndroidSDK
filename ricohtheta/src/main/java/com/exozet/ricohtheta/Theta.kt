@@ -15,6 +15,7 @@ import com.exozet.threehundredsixtyplayer.ThreeHundredSixtyPlayer
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -40,6 +41,11 @@ class Theta : ITheta {
     override fun findCameras() = Observable.create<ICamera> { emitter ->
 
         val cameras = cameras.mapNotNull { camera ->
+            
+            if (camera.deviceInfoName != camera.httpConnector!!.deviceInfo.model) {
+                return@mapNotNull
+            }
+
             camera.httpConnector?.deviceInfo?.also {
                 camera.isConnected = true
                 emitter.onNext(camera)
@@ -100,7 +106,9 @@ class Theta : ITheta {
     }
 
     override fun startLivePreview(view: ThreeHundredSixtyPlayer) = startLivePreview()
+        .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
+        .unsubscribeOn(Schedulers.io())
         .map {
             view.bitmap = it
         }
@@ -119,6 +127,9 @@ class Theta : ITheta {
 
     override fun startLivePreview(delay: Long, timeUnit: TimeUnit) = Observable.create<Bitmap> { emitter ->
 
+        if (emitter.isDisposed) {
+            return@create
+        }
 
         if (connectedCameras.isEmpty()) {
             emitter.onError(HttpConnector.CameraNotFoundException())
@@ -134,9 +145,15 @@ class Theta : ITheta {
             livePreview?.let {
 
 
-                if (!emitter.isDisposed)
-                    emitter.onNext(it.readMJpegFrame())
-                log("reading bitmap ${System.currentTimeMillis() - startTime}")
+                if (!emitter.isDisposed) {
+                    try {
+                        val image = it.readMJpegFrame()
+                        emitter.onNext(image)
+                    } catch (e: Exception) {
+                        log("exception readMjepgFrame ${e.message}")
+                    }
+                    log("reading bitmap ${System.currentTimeMillis() - startTime}")
+                }
             }
 
             if (!emitter.isDisposed)
@@ -147,11 +164,11 @@ class Theta : ITheta {
             if (!emitter.isDisposed)
                 emitter.onError(e)
         }
-    }.repeat().doOnDispose {
+    }.doOnDispose {
         cleanupLivePreview()
     }.doOnError {
         it.log()
-    }
+    }.repeat()
 
     fun InputStream.asJPEGStream(): MJpegInputStream? = try {
         MJpegInputStream(this)
