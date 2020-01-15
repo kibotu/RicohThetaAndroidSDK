@@ -6,10 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.exozet.ricohtheta.Theta
-import com.exozet.ricohtheta.cameras.ICamera
-import com.exozet.ricohtheta.cameras.ThetaS
-import com.exozet.ricohtheta.cameras.ThetaSC
-import com.exozet.ricohtheta.cameras.ThetaV
+import com.exozet.ricohtheta.cameras.*
 import com.exozet.threehundredsixtyplayer.loadImage
 import com.exozet.threehundredsixtyplayer.parseAssetFile
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -27,7 +24,7 @@ class BitmapActivity : AppCompatActivity() {
     private var latestFileId: String? = null
 
     val theta by lazy {
-        Theta().addCamera(ThetaS()).addCamera(ThetaV()).addCamera(ThetaSC())
+        Theta().addCamera(ThetaS()).addCamera(ThetaV()).addCamera(ThetaSC()).addCamera(ThetaSC2())
     }
 
     var subscription: CompositeDisposable = CompositeDisposable()
