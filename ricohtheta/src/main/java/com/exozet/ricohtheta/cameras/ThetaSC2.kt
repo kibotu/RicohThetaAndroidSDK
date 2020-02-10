@@ -1,7 +1,7 @@
 package com.exozet.ricohtheta.cameras
 
 import com.exozet.ricohtheta.internal.network.HttpConnector
-import com.exozet.ricohtheta.internal.network.v2.Http2Connector
+import com.exozet.ricohtheta.internal.network.v21.Http21Connector
 
 
 class ThetaSC2(
@@ -12,5 +12,5 @@ class ThetaSC2(
 
     override val deviceInfoName = "RICOH THETA SC2"
 
-    override var httpConnector: HttpConnector? = Http2Connector(ip4Address)
+    override var httpConnector: HttpConnector? = Http21Connector(ip4Address)
 }
