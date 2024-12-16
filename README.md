@@ -1,5 +1,6 @@
-# Simple Ricoh Theta Android SDK [![Build Status](https://app.bitrise.io/app/3cbaae287f980196/status.svg?token=H__5RNcOW8Q_RGvi23mwUQ)](https://app.bitrise.io/app/3cbaae287f980196) [ ![Download](https://api.bintray.com/packages/exozetag/maven/RicohThetaAndroidSDK/images/download.svg) ](https://bintray.com/exozetag/maven/RicohThetaAndroidSDK/_latestVersion)
+# Simple Ricoh Theta Android SDK
 
+[![Maven Central Version](https://img.shields.io/maven-central/v/net.kibotu/AndroidResourceExtensions)](https://central.sonatype.com/artifact/net.kibotu/AndroidResourceExtensions) [![](https://jitpack.io/v/kibotu/AndroidResourceExtensions.svg)](https://jitpack.io/#kibotu/AndroidResourceExtensions) [![Android CI](https://github.com/kibotu/AndroidResourceExtensions/actions/workflows/android.yml/badge.svg)](https://github.com/kibotu/AndroidResourceExtensions/actions/workflows/android.yml) [![API](https://img.shields.io/badge/Min%20API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21) [![API](https://img.shields.io/badge/Target%20API-35%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=35) [![API](https://img.shields.io/badge/Java-17-brightgreen.svg?style=flat)](https://www.oracle.com/java/technologies/javase/17all-relnotes.html) [![Gradle Version](https://img.shields.io/badge/gradle-8.11.1-green.svg)](https://docs.gradle.org/current/release-notes) [![Kotlin](https://img.shields.io/badge/kotlin-2.1.0-green.svg)](https://kotlinlang.org/) [![](https://jitpack.io/v/kibotu/AndroidResourceExtensions/month.svg)](https://jitpack.io/#kibotu/AndroidResourceExtensions) [![Hits-of-Code](https://hitsofcode.com/github/kibotu/AndroidResourceExtensions)](https://hitsofcode.com/view/github/kibotu/AndroidResourceExtensions)
 
 Features
 
@@ -11,7 +12,7 @@ Features
     - connection state
     - easy api switching sdk version
 
-Inludes
+Includes
 
     [Official Theta360 SDKs](https://developers.theta360.com/en/docs/sdk/download.html)
 

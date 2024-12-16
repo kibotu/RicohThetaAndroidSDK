@@ -3,28 +3,33 @@ package com.exozet.ricohtheta.app
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import com.bumptech.glide.Glide
 import com.exozet.ricohtheta.Theta
+import com.exozet.ricohtheta.app.databinding.ActivityBitmapBinding
 import com.exozet.ricohtheta.cameras.*
 import com.exozet.threehundredsixtyplayer.loadImage
 import com.exozet.threehundredsixtyplayer.parseAssetFile
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import io.reactivex.rxkotlin.addTo
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_bitmap.*
-import java.util.concurrent.TimeUnit
+import timber.log.Timber
 
 
 class BitmapActivity : AppCompatActivity() {
 
-    private val TAG = BitmapActivity::class.java.simpleName
+    private lateinit var binding: ActivityBitmapBinding
+
     private var latestFileId: String? = null
 
     val theta by lazy {
-        Theta().addCamera(ThetaS()).addCamera(ThetaV()).addCamera(ThetaSC()).addCamera(ThetaSC2())
+        Theta()
+            .addCamera(ThetaS())
+            .addCamera(ThetaV())
+            .addCamera(ThetaSC())
+            .addCamera(ThetaSC2())
     }
 
     var subscription: CompositeDisposable = CompositeDisposable()
@@ -33,9 +38,16 @@ class BitmapActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bitmap)
+
+        binding = ActivityBitmapBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         subscription = CompositeDisposable()
+
+        binding.setup()
+    }
+
+    fun ActivityBitmapBinding.setup() {
 
         val sample1 = "interior_example.jpg"
         val sample2 = "equirectangular.jpg"
@@ -49,15 +61,15 @@ class BitmapActivity : AppCompatActivity() {
 
         findCamera {
             startLivePreview()
-            Log.v( TAG,"connected: ${it.deviceInfoName}")
+            Timber.v("connected: ${it.deviceInfoName}")
         }
 
-        sample1.parseAssetFile().loadImage(this) {
+        sample1.parseAssetFile().loadImage(this@BitmapActivity) {
             image1 = it
             threeHundredSixtyView.bitmap = it
         }
 
-        sample2.parseAssetFile().loadImage(this) {
+        sample2.parseAssetFile().loadImage(this@BitmapActivity) {
             image2 = it
         }
 
@@ -65,11 +77,11 @@ class BitmapActivity : AppCompatActivity() {
             threeHundredSixtyView.bitmap = savedPhoto
         }
 
-        close_connection_button.setOnClickListener {
+        closeConnectionButton.setOnClickListener {
             disposeLivePreview()
         }
 
-        start_connection_button.setOnClickListener {
+        startConnectionButton.setOnClickListener {
             findCamera {
                 startLivePreview()
             }
@@ -87,58 +99,63 @@ class BitmapActivity : AppCompatActivity() {
                 current2 = image1
             }
 
-            Log.v("ThreeHundredSixty", "current=$current")
+            Timber.v("current=$current")
 
             threeHundredSixtyView.bitmap = current2
         }
 
         snapshot.setOnClickListener {
-            Log.i(TAG, "take snapshot...")
+            Timber.v("take snapshot...")
             snapshot.isEnabled = false
 
-            theta.takePicture()
+            subscription += theta.takePicture()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError { Log.e(TAG, "Throwable ${it.message}") }
+                .doOnError { Timber.v("Throwable ${it.message}") }
                 .subscribe { result ->
                     latestFileId = result
-                    Log.i(TAG, "snapshot taken $result")
+                    Timber.v("snapshot taken $result")
                     //theta.startLivePreview(threeHundredSixtyView).addTo(subscription)
                     transfer.isEnabled = true
                     snapshot.isEnabled = true
-                    delete_button.isEnabled = true
+                    deleteButton.isEnabled = true
                 }
-                .addTo(subscription)
         }
 
         transfer.isEnabled = false
         transfer.setOnClickListener {
-            Log.i(TAG, "start file transfer of $latestFileId ...")
+            Timber.v("start file transfer of $latestFileId ...")
             transfer.isEnabled = false
             snapshot.isEnabled = false
-            delete_button.isEnabled = false
+            deleteButton.isEnabled = false
 
             latestFileId?.let { id ->
                 theta.transfer(id)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .doOnError { throwable -> Log.e(TAG, "Throwable ${throwable.message}") }
+                    .doOnError { throwable -> Timber.e(throwable) }
                     //.doOnNext{ i -> Log.e(TAG, "onNext ${i.rawData.size}")}
                     .doOnSuccess { result ->
-                        Log.i(TAG, "file transfered $result")
+                        Timber.v("file transfered $result")
                         val filename = id.substringAfter("/")
 
                         //todo: use rx
                         Thread {
-                            val photoFile = theta.saveExternal(this, result, "/exozet Ricoh sdk/", filename)
+                            val photoFile =
+                                theta.saveExternal(
+                                    this@BitmapActivity,
+                                    result,
+                                    "/exozet Ricoh sdk/",
+                                    filename
+                                )
                             val filePath = photoFile.path
                             savedPhoto = BitmapFactory.decodeFile(filePath)
                         }.start()
 
-                        Log.i(TAG, "file saved $filename with result $result")
+                        Timber.v("file saved $filename with result $result")
                         transfer.isEnabled = true
                         snapshot.isEnabled = true
-                        delete_button.isEnabled = true
+                        deleteButton.isEnabled = true
                         show.isEnabled = true
                     }
                     .subscribe()
@@ -146,9 +163,9 @@ class BitmapActivity : AppCompatActivity() {
             }
         }
 
-        delete_button.isEnabled = false
-        delete_button.setOnClickListener {
-            delete_button.isEnabled = false
+        deleteButton.isEnabled = false
+        deleteButton.setOnClickListener {
+            deleteButton.isEnabled = false
 
             latestFileId?.let { id ->
                 theta.deleteOnCamera(id)
@@ -158,7 +175,11 @@ class BitmapActivity : AppCompatActivity() {
                         if (it) {
                             val filename = id.substringAfter("/")
 
-                            theta.deleteExternal(this, "/exozet Ricoh sdk/", filename)
+                            theta.deleteExternal(
+                                this@BitmapActivity,
+                                "/exozet Ricoh sdk/",
+                                filename
+                            )
 
                         }
                     }, { it.printStackTrace() })
@@ -169,10 +190,17 @@ class BitmapActivity : AppCompatActivity() {
 
             threeHundredSixtyView.vrLibrary?.renderer?.takeScreenshot {
 
-                Log.v( TAG, "[takeScreenshot] bitmap width=${it.width} height=${it.height}")
+                Timber.v("[takeScreenshot] bitmap width=${it.width} height=${it.height}")
 
                 runOnUiThread {
-                    thumb.setImageBitmap(it)
+
+                    val layoutParams = thumb.layoutParams as ConstraintLayout.LayoutParams
+                    layoutParams.dimensionRatio = "${it.width}:${it.height}"
+                    thumb.layoutParams = layoutParams
+
+                    Glide.with(this@BitmapActivity)
+                        .load(it)
+                        .into(thumb)
                 }
             }
         }
@@ -180,10 +208,10 @@ class BitmapActivity : AppCompatActivity() {
 
     private fun startLivePreview() {
         disposeLivePreview()
-        livePreviewStream = theta.startLivePreview(threeHundredSixtyView)
+        livePreviewStream = theta.startLivePreview(binding.threeHundredSixtyView)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnError{Log.e(TAG, "fail ${it.message}")}
+            .doOnError { Timber.e(it) }
             .subscribe({}, { it.printStackTrace() })
     }
 
@@ -203,13 +231,20 @@ class BitmapActivity : AppCompatActivity() {
     }
 
     private fun findCamera(onComplete: (ICamera) -> Unit) {
-        theta.findCameras()
+        subscription += theta.findCameras()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 onComplete(it)
             }, {
                 it.printStackTrace()
-            }).addTo(subscription)
+            })
     }
 }
+
+operator fun CompositeDisposable.plusAssign(disposable: Disposable) {
+    add(disposable)
+}
+
+fun Disposable.addTo(compositeDisposable: CompositeDisposable): Disposable =
+    apply { compositeDisposable.add(this) }

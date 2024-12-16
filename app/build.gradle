@@ -1,28 +1,17 @@
-import java.security.spec.InvalidKeySpecException
-
-ext {
-    versionName = VERSION_NAME
-    VERSION_CODE = 1
-    VSC = VSC_PATH
-    isCi = true
-}
-
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
-    compileSdkVersion compileSdkVer
-    buildToolsVersion buildToolsVer
+
+    namespace "com.exozet.ricohtheta.app"
+    compileSdk compileSdkVer
+    buildToolsVersion = buildToolsVer
 
     defaultConfig {
-        applicationId "com.exozet.ricohthetasampleapp"
-        minSdkVersion 16
-        targetSdkVersion targetSdkVer
-        versionCode isCi ? commitCount() : VERSION_CODE
-        versionName isCi ? simpleReleaseVersionName() : VERSION_NAME
+        applicationId "com.exozet.ricohtheta.app"
+        minSdk minSdkVer
+        targetSdk targetSdkVer
+        versionName version
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,7 +26,7 @@ android {
             }
         }
         catch (final ignored) {
-            throw new InvalidKeySpecException('You should define DEBUG_KEYSTORE_ALLIAS, DEBUG_STORE_PASSWORD, DEBUG_KEY_PASSWORD in gradle.properties.')
+            throw new java.security.spec.InvalidKeySpecException('You should define DEBUG_KEYSTORE_ALLIAS, DEBUG_STORE_PASSWORD, DEBUG_KEY_PASSWORD in gradle.properties.')
         }
         try {
             release {
@@ -47,7 +36,7 @@ android {
                 keyPassword RELEASE_KEY_PASSWORD
             }
         } catch (final ignored) {
-            throw new InvalidKeySpecException('You should define RELEASE_KEYSTORE_ALIAS, RELEASE_STORE_PASSWORD, RELEASE_KEY_PASSWORD in gradle.properties.')
+            throw new java.security.spec.InvalidKeySpecException('You should define RELEASE_KEYSTORE_ALIAS, RELEASE_STORE_PASSWORD, RELEASE_KEY_PASSWORD in gradle.properties.')
         }
     }
 
@@ -55,7 +44,7 @@ android {
         debug {
             signingConfig signingConfigs.debug
             pseudoLocalesEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-debug.pro'
             minifyEnabled false
             shrinkResources = false
         }
@@ -63,46 +52,56 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources = true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', '../proguard-release.pro'
         }
     }
 
-    // region compile options
+    buildFeatures {
+        viewBinding true
+    }
+
+    // region java compile options
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
+
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // endregion
+
+    // region kotlin compile options
+
+    kotlinOptions {
+        jvmTarget = "17"
+        allWarningsAsErrors = false
+        kotlinOptions.verbose = true
+        freeCompilerArgs += [
+                "-Xjvm-default=all-compatibility"
+        ]
     }
 
     // endregion
 
     // region lint options
 
-    lintOptions {
-        disable 'InvalidPackage'
-        abortOnError false        // true by default
+    lint {
+        disable 'TypographyFractions', 'TypographyQuotes', 'InvalidPackage'
+        enable 'RtlHardcoded', 'RtlCompat', 'RtlEnabled'
+        checkOnly 'NewApi', 'InlinedApi'
+        quiet true
+        abortOnError false
+        ignoreWarnings true
+        checkDependencies true
+        ignoreTestSources true
         checkAllWarnings false
-        checkReleaseBuilds false
-        ignoreWarnings true       // false by default
-        quiet true                // false by default
-        tasks.lint.enabled = false
-    }
-
-    // endregion
-
-    // region dex options
-
-    dexOptions {
-        javaMaxHeapSize "4g"
-        maxProcessCount 8
-    }
-
-    // endregion
-
-    // region adb options
-
-    adbOptions {
-        timeOutInMs 10 * 60 * 1000 // 10 minutes
     }
 
     // endregion
@@ -110,57 +109,33 @@ android {
     // region exclude duplicated meta inf files
 
     packagingOptions {
-        exclude 'META-INF/maven/com.google.guava/guava/pom.properties'
-        exclude 'META-INF/maven/com.google.guava/guava/pom.xml'
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/ASL2.0'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/dependencies.txt'
-        exclude 'META-INF/LGPL2.1'
-        exclude 'META-INF/rxjava.properties'
-        exclude 'META-INF/app_debug.kotlin_module'
+        // DebugProbesKt.bin is used for java debugging (not needed for android)
+        // Hint: https://github.com/Kotlin/kotlinx.coroutines/issues/2274
+        exclude 'DebugProbesKt.bin'
+
+        excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        // https://stackoverflow.com/a/61893957/1006741
+        excludes -= "/META-INF/*.kotlin_module"
     }
 
     // endregion
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation libs.kotlinJdk8
-    implementation libs.supportMultidex
-    implementation libs.supportAppCompat
-    implementation libs.supportDesign
-    implementation libs.constraintLayout
-    implementation libs.supportVectorDrawable
+    coreLibraryDesugaring desugaring.jdk
 
-
-//    implementation 'com.exozet:ricohtheta:1.0.0'
     implementation project(":ricohtheta")
 
-    implementation libs.md360PlayerBeta
+    implementation libs.supportAppCompat
+    implementation libs.material
+    implementation libs.constraintLayout
 
-    debugImplementation libs.leakcanaryDebug
-    debugImplementation libs.leakcanaryDebugSupportFragments
-    releaseImplementation libs.leakcanaryRelease
+    implementation libs.threeHundredSixtyPlayer
+    implementation libs.md360Player
 
-    implementation (libs.threeHundertSixtyPlayer) {
-        exclude module: 'MD360Player4Android'
-    }
-    implementation libs.rxpermissions
     implementation libs.rx2java
     implementation libs.rx2Android
-    implementation libs.rx2Kotlin
     implementation libs.glide
-    kapt libs.glideAnnotationsProcessor
-}
-
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 10, 'minutes'
+    implementation libs.timber
+    implementation libs.leakcanary
 }
