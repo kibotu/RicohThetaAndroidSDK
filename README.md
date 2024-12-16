@@ -14,7 +14,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'net.kibotu:ThreeHundredSixtyPlayer:{latest-version}'
+    implementation 'net.kibotu:RicohThetaAndroidSDK:{latest-version}'
 }
 
 ```
@@ -30,7 +30,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.kibotu:ThreeHundredSixtyPlayer:{latest-version}'
+    implementation 'com.github.kibotu:RicohThetaAndroidSDK:{latest-version}'
 }
 ```
 
