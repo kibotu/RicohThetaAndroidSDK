@@ -40,10 +40,10 @@ class Theta : ITheta {
 
     override fun findCameras() = Observable.create<ICamera> { emitter ->
 
-        val cameras = cameras.mapNotNull { camera ->
+        val cameras = cameras.map { camera ->
             
             if (camera.deviceInfoName != camera.httpConnector!!.deviceInfo.model) {
-                return@mapNotNull
+                return@map
             }
 
             camera.httpConnector?.deviceInfo?.also {
@@ -237,8 +237,8 @@ class Theta : ITheta {
         var fOutputStream: OutputStream? = null
         val file = File("$path/$folderName/", fileName)
 
-        if (!file.parentFile.exists()) {
-            file.parentFile.mkdirs()
+        if (file.parentFile?.exists() == false) {
+            file.parentFile?.mkdirs()
             file.createNewFile()
         }
 
