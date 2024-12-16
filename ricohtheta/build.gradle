@@ -98,13 +98,8 @@ android {
 
 dependencies {
     coreLibraryDesugaring desugaring.jdk
-    implementation libs.supportAppCompat
-
+    implementation libs.threeHundredSixtyPlayer
     implementation libs.rx2java
     implementation libs.rx2Android
-
     implementation libs.constraintLayout
-    implementation libs.threeHundredSixtyPlayer
-    implementation libs.md360Player
-
 }
